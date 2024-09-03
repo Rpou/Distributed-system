@@ -33,20 +33,20 @@ func philosipher(){
 			if(v == false && forksAva == 1){
 				forksch <- i
 				indexEating2 = i
+				forksAva++
+				eating = true
 				break;
-			} else if {
+			} else if false {
 				forksch <- i
 				indexEating = i
 				forksAva++
 			}
 			
-			if forksAva > 1 {
-				eating = true
-			} 	
+	
 			
 		}
 	
-		if(indexEating != 1 && forksAva > 0){ //if only got one, put it back
+		if(indexEating != 1 && forksAva < 2){ //if only got one, put it back
 			forksch <- indexEating
 			indexEating = -1
 		}
@@ -71,9 +71,9 @@ func fork(){
 	for {
 		index := <- forksch
 		if forkArry[index] {
-			forkArry[index] = true;
-		} else {
 			forkArry[index] = false;
+		} else {
+			forkArry[index] = true;
 		}
 	}
 }
