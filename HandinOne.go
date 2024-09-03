@@ -22,41 +22,39 @@ func main() {
 func philosipher(){
 	//how many forks that can be grabbed
 	eating := false
-	forksAva := 0
 	
 	//indexes where philosipher has forks
-	indexEating := -1
-	indexEating2 := -1
+	indexFork := -1
+	indexFork2 := -1
 	for {
 		for i, v := range forkArry {
 			forksAva = <-forksch
-			if(v == false && forksAva == 1){
+			if(v == false && indexFork != -1){
 				forksch <- i
-				indexEating2 = i
+				indexFork2 = i
 				forksAva++
 				eating = true
 				break;
 			} else if false {
 				forksch <- i
-				indexEating = i
-				forksAva++
+				indexFork = i
 			}
 			
 	
 			
 		}
 	
-		if(indexEating != 1 && forksAva < 2){ //if only got one, put it back
-			forksch <- indexEating
-			indexEating = -1
+		if(indexFork != -1 && indexFork2 =< 0){ //if only got one, put it back
+			forksch <- indexFork
+			indexFork = -1
 		}
 	
 		if eating {
 			fmt.Println("eating")
-			forksch <- indexEating //put forks back
-			forksch <- indexEating2
-			indexEating = -1
-			indexEating2 = -2
+			forksch <- indexFork //put forks back
+			forksch <- indexFork2
+			indexFork = -1
+			indexFork2 = -2
 		} else {
 			fmt.Println("thinking")
 		}
