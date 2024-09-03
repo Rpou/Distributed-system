@@ -6,6 +6,7 @@ import {
 }
 
 ch1 := make(chan bool)
+forkArry := []bool{false,false,false,false,false}
 
 func main() {
 	philosipher()
@@ -22,7 +23,20 @@ func main() {
 }
 
 func philosipher(){
+	//how many forks that can be grabbed
+	forksAva := 0;
+	//channel to communicate between forksava
+	forksch := make(chan int)
 
+
+	for i, v := range forkArry {
+		forksAva = <-forksch
+		if(v == false){
+			forksch <- forksAva + 1
+			forkArry[i] = true
+		}
+		ch <- false
+	}
 
 	if bla bla {
 		fmt.Println("eating")
@@ -32,6 +46,8 @@ func philosipher(){
 }
 
 func fork(){
+
 	beingUsed := false
+	
 }
 
