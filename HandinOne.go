@@ -1,12 +1,13 @@
 package main
 
-import {
+import (
 	"fmt"
 	"sync"
-}
+)
 
 ch1 := make(chan bool)
 forkArry := []bool{false,false,false,false,false}
+forksch := make(chan int)
 
 func main() {
 	philosipher()
@@ -16,38 +17,65 @@ func main() {
 	philosipher()
 
 	fork()
-	fork()
-	fork()
-	fork()
-	fork()
 }
 
 func philosipher(){
 	//how many forks that can be grabbed
-	forksAva := 0;
-	//channel to communicate between forksava
-	forksch := make(chan int)
+	eating := false
+	forksAva := 0
+	
+	//indexes where philosipher has forks
+	indexEating := -1
+	indexEating2 := -1
 
 
 	for i, v := range forkArry {
 		forksAva = <-forksch
-		if(v == false){
-			forksch <- forksAva + 1
-			forkArry[i] = true
+		if(v == false && forksAva == 1){
+			forksch <- i
+			indexEating2 = i
+			break;
+		} else if {
+			forksch <- i
+			indexEating = i
+			forksAva++
 		}
-		ch <- false
+		
+		if forksAva > 1 {
+			eating = true
+		} 	
+		
 	}
 
-	if bla bla {
+	if(indexEating != 1 && forksAva > 0){ //if only got one, put it back
+		forksch <- indexEating
+		indexEating = -1
+	}
+
+	if eating {
 		fmt.Println("eating")
+		forksch <- indexEating //put forks back
+		forksch <- indexEating2
+		indexEating = -1
+		indexEating2 = -2
 	} else {
 		fmt.Println("thinking")
 	}
+
+	rand.Seed(time.Now().UnixNano())
+	time.Sleep(time.Duration(rand.Intn(1000) * time.Millisecond))
+
+	
 }
 
 func fork(){
-
-	beingUsed := false
-	
+	for {
+		index := <- forksch
+		if forkArry[index] {
+			forkArry[index] = true;
+		} else {
+			forkArry[index] = false;
+		}
+	}
 }
 
