@@ -27,45 +27,44 @@ func philosipher(){
 	//indexes where philosipher has forks
 	indexEating := -1
 	indexEating2 := -1
-
-
-	for i, v := range forkArry {
-		forksAva = <-forksch
-		if(v == false && forksAva == 1){
-			forksch <- i
-			indexEating2 = i
-			break;
-		} else if {
-			forksch <- i
-			indexEating = i
-			forksAva++
+	for {
+		for i, v := range forkArry {
+			forksAva = <-forksch
+			if(v == false && forksAva == 1){
+				forksch <- i
+				indexEating2 = i
+				break;
+			} else if {
+				forksch <- i
+				indexEating = i
+				forksAva++
+			}
+			
+			if forksAva > 1 {
+				eating = true
+			} 	
+			
 		}
-		
-		if forksAva > 1 {
-			eating = true
-		} 	
-		
-	}
-
-	if(indexEating != 1 && forksAva > 0){ //if only got one, put it back
-		forksch <- indexEating
-		indexEating = -1
-	}
-
-	if eating {
-		fmt.Println("eating")
-		forksch <- indexEating //put forks back
-		forksch <- indexEating2
-		indexEating = -1
-		indexEating2 = -2
-	} else {
-		fmt.Println("thinking")
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	time.Sleep(time.Duration(rand.Intn(1000) * time.Millisecond))
-
 	
+		if(indexEating != 1 && forksAva > 0){ //if only got one, put it back
+			forksch <- indexEating
+			indexEating = -1
+		}
+	
+		if eating {
+			fmt.Println("eating")
+			forksch <- indexEating //put forks back
+			forksch <- indexEating2
+			indexEating = -1
+			indexEating2 = -2
+		} else {
+			fmt.Println("thinking")
+		}
+	
+		rand.Seed(time.Now().UnixNano()) //wait between 0 and 1 sec
+		time.Sleep(time.Duration(rand.Intn(1000) * time.Millisecond)) 
+	
+	}	
 }
 
 func fork(){
