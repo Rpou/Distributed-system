@@ -24,47 +24,49 @@ func main() {
 func philosipher() {
 	//how many forks that can be grabbed
 	eating := false
-	forksAva := 0
-
+	
 	//indexes where philosipher has forks
-	indexEating := -1
-	indexEating2 := -1
+	indexFork := -1
+	indexFork2 := -1
 	for {
 		for i, v := range forkArry {
-
-			if v == false && forksAva == 1 {
+			forksAva = <-forksch
+			if(v == false && indexFork != -1){
 				forksch <- i
-				indexEating2 = i
-				eating = true
-				break
-			} else if v == false {
-				forksch <- i
-				indexEating = i
+				indexFork2 = i
 				forksAva++
+				eating = true
+				break;
+			} else if false {
+				forksch <- i
+				indexFork = i
 			}
-
+			
+	
+			
 		}
-
-		if indexEating != 1 && forksAva > 0 { //if only got one, put it back
-			forksch <- indexEating
-			indexEating = -1
+	
+		if(indexFork != -1 && indexFork2 =< 0){ //if only got one, put it back
+			forksch <- indexFork
+			indexFork = -1
 		}
 
 		if eating {
 			fmt.Println("eating")
-			forksch <- indexEating //put forks back
-			forksch <- indexEating2
-			indexEating = -1
-			indexEating2 = -2
+			forksch <- indexFork //put forks back
+			forksch <- indexFork2
+			indexFork = -1
+			indexFork2 = -2
 		} else {
 			fmt.Println("thinking")
 		}
-
 		rand.Seed(time.Now().UnixNano()) //wait between 0 and 1 sec
-		time.Sleep(time.Duration(rand.Intn(1000) * time.Millisecond))
+        time.Sleep(time.Duration(rand.Intn(1000) * time.Millisecond))
 
 	}
+	
 }
+
 
 func fork(array []bool) {
 	for {
