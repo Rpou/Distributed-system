@@ -6,80 +6,92 @@ import (
 	"time"
 )
 
-var forkArry = []bool
+var (
+	forkArry = []int{0, 0, 0, 0, 0}
+)
 
 func main() {
-	ch1 := make(chan bool)
-	forksch := make(chan int)
-	forkArry = []bool{false, false, false, false, false}
-	philosipher()
-	philosipher()
-	philosipher()
-	philosipher()
-	philosipher()
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	ch3 := make(chan int)
+	ch4 := make(chan int)
+	ch5 := make(chan int)
 
-	fork(forkArry)
+	go fork(0, ch1)
+	go fork(1, ch2)
+	go fork(2, ch3)
+	go fork(3, ch4)
+	go fork(4, ch5)
+
+	go philosipher(1, ch1, ch2)
+	go philosipher(2, ch2, ch3)
+	go philosipher(3, ch3, ch4)
+	go philosipher(4, ch4, ch5)
+	go philosipher(5, ch5, ch1)
+
+	select {} // prevent main from exiting
+
 }
 
-func philosipher() {
-	//how many forks that can be grabbed
-	eating := false
-	
-	//indexes where philosipher has forks
-	indexFork := -1
-	indexFork2 := -1
+func philosipher(number int, ch1 chan int, ch2 chan int) {
 	for {
-		for i, v := range forkArry {
-			forksAva = <-forksch
-			if(v == false && indexFork != -1){
-				forksch <- i
-				indexFork2 = i
-				forksAva++
-				eating = true
-				break;
-			} else if false {
-				forksch <- i
-				indexFork = i
+		eating := false
+
+		startTime := time.Now()            // Record the start time
+		timeoutDuration := 1 * time.Second // 1 second timeout
+
+		// tjekker om den kan få gaffel 1 inden for 1 sec
+		for time.Since(startTime) < timeoutDuration {
+			ch1 <- number
+			if forkArry[number-1] == number { // Acquired the first fork
+				break
 			}
-			
-	
-			
+
 		}
-	
-		if(indexFork != -1 && indexFork2 =< 0){ //if only got one, put it back
-			forksch <- indexFork
-			indexFork = -1
+
+		if forkArry[number-1] == number { //tjek om array for opdateret fra fork???
+			startTime = time.Now()
+			// tjekker om den kan få gaffel 2 inden for 1 sec
+			for time.Since(startTime) < timeoutDuration {
+				ch2 <- number
+				if number != 5 {
+					if forkArry[number] == number {
+						eating = true
+						break
+					}
+
+				} else {
+					if forkArry[0] == number {
+						eating = true
+						break
+					}
+				}
+
+			}
+		} else { // hvis den ikke har fået fat i gaffel 1, så continue (kør for-loop fra starten igen.)
+			continue
 		}
 
 		if eating {
-			fmt.Println("eating")
-			forksch <- indexFork //put forks back
-			forksch <- indexFork2
-			indexFork = -1
-			indexFork2 = -2
+			fmt.Println(number)
+			ch1 <- number //returner begge gafler
+			ch2 <- number
 		} else {
-			fmt.Println("thinking")
+			ch1 <- number
+
 		}
-		rand.Seed(time.Now().UnixNano()) //wait between 0 and 1 sec
-        time.Sleep(time.Duration(rand.Intn(1000) * time.Millisecond))
 
+		time.Sleep(time.Duration(rand.Float64() * 10000)) //mængden af tid de venter med at
 	}
-	
 }
 
-
-func fork(array []bool) {
+func fork(number int, ch chan int) {
 	for {
-		index := <-forksch
-		changeArry(index, array)
+		index := <-ch
+		if forkArry[number] == 0 {
+			forkArry[number] = index
+		} else if forkArry[number] == index {
+			forkArry[number] = 0
+		}
 	}
-}
-
-func changeArry(index int, array []bool) []bool {
-	if array[index] {
-		array[index] = false
-	} else {
-		array[index] = true
-	}
-	return array
 }
