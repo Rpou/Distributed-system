@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	forkArry = []int{0, 0, 0, 0, 0}
+	forkArry   = []int{0, 0, 0, 0, 0}
+	TimesEaten = []int{0, 0, 0, 0, 0}
 )
 
 func main() {
@@ -28,6 +29,8 @@ func main() {
 	go philosipher(3, ch3, ch4)
 	go philosipher(4, ch4, ch5)
 	go philosipher(5, ch5, ch1)
+
+	//go Status() //viser
 
 	select {} // prevent main from exiting
 
@@ -57,12 +60,14 @@ func philosipher(number int, ch1 chan int, ch2 chan int) {
 				if number != 5 {
 					if forkArry[number] == number {
 						eating = true
+						TimesEaten[number-1]++
 						break
 					}
 
 				} else {
 					if forkArry[0] == number {
 						eating = true
+						TimesEaten[number-1]++
 						break
 					}
 				}
@@ -73,7 +78,7 @@ func philosipher(number int, ch1 chan int, ch2 chan int) {
 		}
 
 		if eating {
-			fmt.Println(number)
+			fmt.Println(number, "spiser, nam nam...")
 			ch1 <- number //returner begge gafler
 			ch2 <- number
 		} else {
@@ -92,6 +97,15 @@ func fork(number int, ch chan int) {
 			forkArry[number] = index
 		} else if forkArry[number] == index {
 			forkArry[number] = 0
+		}
+	}
+}
+
+func Status() {
+	for {
+		time.Sleep(time.Duration(rand.Float64() * 100000))
+		for i := 0; i < 100; i++ {
+			fmt.Println(TimesEaten)
 		}
 	}
 }
