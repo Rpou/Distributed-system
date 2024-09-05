@@ -30,7 +30,7 @@ func main() {
 	go philosipher(4, ch4, ch5)
 	go philosipher(5, ch5, ch1)
 
-	//go Status() //viser
+	//go Status() //viser array over hvor mange gange spist
 
 	select {} // prevent main from exiting
 
