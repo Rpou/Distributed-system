@@ -30,12 +30,9 @@ func main() {
 	go philosipher(4, ch4, ch5)
 	go philosipher(5, ch5, ch1)
 
-	//go Status() //viser
-
-	//select {} // prevent main from exiting
-
 	for {
-		if Status(1000000000) == 1 {
+		//change the number in "Status" to make them able to eat more than 3 times
+		if Status(3) == 1 {
 			break
 		}
 	}
@@ -44,16 +41,12 @@ func main() {
 
 func philosipher(number int, ch1 chan int, ch2 chan int) {
 	for {
-
-		//time.Sleep(time.Duration(rand.Int31()))
-		//time.Sleep(time.Duration(rand.Float32()))
-
 		eating := false
 
-		startTime := time.Now()                   // Record the start time
-		timeoutDuration := 200 * time.Millisecond // 1 second timeout
+		startTime := time.Now()                 // Record the start time
+		timeoutDuration := 1 * time.Millisecond // 1 millisecond timeout
 
-		// tjekker om den kan få gaffel 1 inden for 1 sec
+		// tjekker om den kan få gaffel 1 inden for 1 milisec
 		for time.Since(startTime) < timeoutDuration {
 			ch1 <- number
 			if forkArry[number-1] == number { // Acquired the first fork
@@ -64,7 +57,7 @@ func philosipher(number int, ch1 chan int, ch2 chan int) {
 
 		if forkArry[number-1] == number { //tjek om array for opdateret fra fork???
 			startTime = time.Now()
-			// tjekker om den kan få gaffel 2 inden for 1 sec
+			// tjekker om den kan få gaffel 2 inden for 1 milisec
 			for time.Since(startTime) < timeoutDuration {
 				ch2 <- number
 				if number != 5 {
@@ -85,7 +78,7 @@ func philosipher(number int, ch1 chan int, ch2 chan int) {
 			}
 		} else { // hvis den ikke har fået fat i gaffel 1, så continue (kør for-loop fra starten igen.)
 			fmt.Println(number, "thinkin")
-			//time.Sleep(time.Duration(rand.Float64() * 10000)) //mængden af tid de venter med at
+
 			continue
 		}
 
@@ -99,7 +92,6 @@ func philosipher(number int, ch1 chan int, ch2 chan int) {
 
 		}
 
-		//time.Sleep(time.Duration(rand.Float64() * 10000)) //mængden af tid de venter med at
 	}
 }
 
