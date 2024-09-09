@@ -30,7 +30,7 @@ func main() {
 	go philosipher(4, ch4, ch5)
 	go philosipher(5, ch5, ch1)
 
-	//go Status() //viser
+	go Status() //viser
 
 	select {} // prevent main from exiting
 
@@ -38,10 +38,14 @@ func main() {
 
 func philosipher(number int, ch1 chan int, ch2 chan int) {
 	for {
+
+		//time.Sleep(time.Duration(rand.Int31()))
+		time.Sleep(time.Duration(rand.Float32()))
+
 		eating := false
 
-		startTime := time.Now()            // Record the start time
-		timeoutDuration := 1 * time.Second // 1 second timeout
+		startTime := time.Now()                    // Record the start time
+		timeoutDuration := 1000 * time.Millisecond // 1 second timeout
 
 		// tjekker om den kan få gaffel 1 inden for 1 sec
 		for time.Since(startTime) < timeoutDuration {
@@ -74,6 +78,8 @@ func philosipher(number int, ch1 chan int, ch2 chan int) {
 
 			}
 		} else { // hvis den ikke har fået fat i gaffel 1, så continue (kør for-loop fra starten igen.)
+			fmt.Println(number, "thinkin")
+			time.Sleep(time.Duration(rand.Float64() * 10000)) //mængden af tid de venter med at
 			continue
 		}
 
@@ -82,6 +88,7 @@ func philosipher(number int, ch1 chan int, ch2 chan int) {
 			ch1 <- number //returner begge gafler
 			ch2 <- number
 		} else {
+			fmt.Println(number, "thinkin")
 			ch1 <- number
 
 		}
@@ -106,6 +113,7 @@ func Status() {
 		time.Sleep(time.Duration(rand.Float64() * 100000))
 		for i := 0; i < 100; i++ {
 			fmt.Println(TimesEaten)
+			fmt.Println(forkArry)
 		}
 	}
 }
