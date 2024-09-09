@@ -35,7 +35,9 @@ func main() {
 	//select {} // prevent main from exiting
 
 	for {
-		Status()
+		if Status(1000000000) == 1 {
+			break
+		}
 	}
 
 }
@@ -112,14 +114,14 @@ func fork(number int, ch chan int) {
 	}
 }
 
-func Status() {
+func Status(limit int) int {
 	for {
 		time.Sleep(time.Duration(rand.Float64() * 100000))
 		for i := 0; i < 100; i++ {
 			fmt.Println(TimesEaten)
 			fmt.Println(forkArry)
-			if TimesEaten[0] > 2 && TimesEaten[1] > 2 && TimesEaten[2] > 2 && TimesEaten[3] > 2 && TimesEaten[4] > 2 {
-				return
+			if TimesEaten[0] > limit && TimesEaten[1] > limit && TimesEaten[2] > limit && TimesEaten[3] > limit && TimesEaten[4] > limit {
+				return 1
 			}
 		}
 	}
