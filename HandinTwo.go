@@ -51,20 +51,23 @@ func client(ClientToServer chan string, ServerToClient chan string) {
 
 func server(ClientToServer chan string, ServerToClient chan string) {
 	// Step 2
-	//
+	// Gets the client SEQ
 	recivedSeqNr := <-ClientToServer
 	AckNr, err := convertStringToInt(recivedSeqNr)
 	AckNr = AckNr + 1
 	_ = err
 
+	// Makes Client SEQ
 	NewSeqNr := rand.Intn(16000) + 8000 + 1
 
 	fmt.Println(convertIntToString(AckNr) + " " + convertIntToString(NewSeqNr))
 
+	// Sends the servers ACK and SEQ
 	ServerToClient <- convertIntToString(AckNr) + " " + convertIntToString(NewSeqNr)
 
 	fmt.Println("Sending ACKnr and SEQnr")
 
+	//Recives ACK and SEQ From client. Establishes connection
 	RecSeq, RecACK, err := convertStringToTwoInt(<-ClientToServer)
 
 	fmt.Println("Connection established!")
