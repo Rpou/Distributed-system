@@ -12,6 +12,7 @@ func main() {
 	fmt.Println()
 	ClientToServer := make(chan string)
 	ServerToClient := make(chan string)
+	
 
 	go client(ClientToServer, ServerToClient)
 	go server(ClientToServer, ServerToClient)
@@ -47,6 +48,11 @@ func client(ClientToServer chan string, ServerToClient chan string) {
 	// Sends the new information to the server.
 	ClientToServer <- convertIntToString(ClientACKNr) + " " + convertIntToString(ClientSeqNr)
 
+	for i := 0; i < 10; i++{
+		RandMessageForServer := rand.Intn(313311122)
+		ClientToServer <- convertIntToString(RandMessageForServer)
+	}
+
 }
 
 func server(ClientToServer chan string, ServerToClient chan string) {
@@ -72,6 +78,14 @@ func server(ClientToServer chan string, ServerToClient chan string) {
 
 	fmt.Println("Connection established!")
 	fmt.Println(RecSeq, RecACK)
+
+	arry := make([]int, 10)
+	
+	for i := 0; i < len(arry); i++{
+		Message,err := <- convertStringToInt(ClientToServer)
+		arry[i] = Message
+	}
+
 
 }
 
