@@ -12,7 +12,6 @@ func main() {
 	fmt.Println()
 	ClientToServer := make(chan string)
 	ServerToClient := make(chan string)
-	
 
 	go client(ClientToServer, ServerToClient)
 	go server(ClientToServer, ServerToClient)
@@ -37,7 +36,7 @@ func client(ClientToServer chan string, ServerToClient chan string) {
 
 	_ = err
 
-	fmt.Println(ServerACKNr, ServerSeqNr)
+	fmt.Println("Recieved:", ServerACKNr, ServerSeqNr)
 
 	// the Client recives the ServerSEQ and +1. This is the new ClientACKNr
 	ClientACKNr := ServerSeqNr + 1
@@ -46,9 +45,10 @@ func client(ClientToServer chan string, ServerToClient chan string) {
 	ClientSeqNr = ServerACKNr
 
 	// Sends the new information to the server.
+
 	ClientToServer <- convertIntToString(ClientACKNr) + " " + convertIntToString(ClientSeqNr)
 
-	for i := 0; i < 10; i++{
+	for i := 0; i < 10; i++ {
 		RandMessageForServer := rand.Intn(313311122)
 		ClientToServer <- convertIntToString(RandMessageForServer)
 	}
@@ -57,7 +57,7 @@ func client(ClientToServer chan string, ServerToClient chan string) {
 
 func server(ClientToServer chan string, ServerToClient chan string) {
 	// Step 2
-	// Gets the client SEQ
+	// Gets the client SEQ and makes it the servers ACK
 	recivedSeqNr := <-ClientToServer
 	AckNr, err := convertStringToInt(recivedSeqNr)
 	AckNr = AckNr + 1
@@ -78,15 +78,16 @@ func server(ClientToServer chan string, ServerToClient chan string) {
 
 	fmt.Println("Connection established!")
 	fmt.Println(RecSeq, RecACK)
-
-	arry := make([]int, 10)
 	
-	for i := 0; i < len(arry); i++{
-		Message,err := <- convertStringToInt(ClientToServer)
+	arry := make([]int, 10)
+	fmt.Println("Now sending messages!")
+	for i := 0; i < len(arry); i++ {
+		Message, err := convertStringToInt(<-ClientToServer)
+		_ = err
 		arry[i] = Message
+		fmt.Println(arry[i])
 	}
-
-
+	fmt.Println("Messages finished")
 }
 
 func convertStringToTwoInt(a string) (int, int, error) {
