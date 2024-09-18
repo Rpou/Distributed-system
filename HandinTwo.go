@@ -36,6 +36,7 @@ func middleman(ClientToMiddleman chan string, MiddlemanToClient chan string, Ser
 		case msgFromClientToServer := <-ClientToMiddleman:
 			// 10 percent chance func returns false, and won't send message
 			if triesToSendMessagesCouldFail() {
+				// 10 percent chance func sleep for 3 sec
 				triesToSendMessagesCouldDelay()
 				MiddlemanToServer <- msgFromClientToServer
 			}
@@ -44,6 +45,7 @@ func middleman(ClientToMiddleman chan string, MiddlemanToClient chan string, Ser
 		case msgFromServerToMiddleman := <-ServerToMiddleman:
 			// 10 percent chance func returns false, and won't send message
 			if triesToSendMessagesCouldFail() {
+				// 10 percent chance func sleep for 3 sec
 				triesToSendMessagesCouldDelay()
 				MiddlemanToClient <- msgFromServerToMiddleman
 			}
