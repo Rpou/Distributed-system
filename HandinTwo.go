@@ -10,29 +10,50 @@ import (
 func main() {
 
 	fmt.Println()
-	ClientToServer := make(chan string)
-	ServerToClient := make(chan string)
+	//ClientToServer := make(chan string)
+	//ServerToClient := make(chan string)
 
-	go client(ClientToServer, ServerToClient)
-	go server(ClientToServer, ServerToClient)
+	ClientToMiddleman := make(chan string)
+	MiddlemanToClient := make(chan string)
+	ServerToMiddleman := make(chan string)
+	MiddlemanToServer := make(chan string)
 
+	go client(ClientToMiddleman, MiddlemanToClient)
+	go server(ServerToMiddleman, MiddlemanToServer)
+	go middleman(ClientToMiddleman, MiddlemanToClient, ServerToMiddleman, MiddlemanToServer)
 	for {
 
 	}
 
 }
 
-func client(ClientToServer chan string, ServerToClient chan string) {
+func middleman(ClientToMiddleman chan string, MiddlemanToClient chan string, ServerToMiddleman chan string, MiddlemanToServer chan string) {
+	for {
+		select {
+
+		// Client sends a message to middleman, and middleman sends to server
+		case msgFromClientToServer := <-ClientToMiddleman:
+			MiddlemanToServer <- msgFromClientToServer
+
+		// Server sends a message to middleman, and middleman sends to client
+		case msgFromServerToMiddleman := <-ServerToMiddleman:
+			MiddlemanToClient <- msgFromServerToMiddleman
+
+		}
+	}
+}
+
+func client(ClientToMiddleman chan string, MiddlemanToClient chan string) {
 
 	//Step 1:
-	// Makes a random SEQ nr for the client and send it to server.
+	// Makes a random SEQ nr for the client and send it to middleman.
 	ClientSeqNr := rand.Intn(8000) + 1
 	fmt.Println("Sending", ClientSeqNr, "to server")
-	ClientToServer <- convertIntToString(ClientSeqNr)
+	ClientToMiddleman <- convertIntToString(ClientSeqNr)
 
 	// Step 3
 	// Gets the servers ACK and SEQ
-	ServerACKNr, ServerSeqNr, err := convertStringToTwoInt(<-ServerToClient)
+	ServerACKNr, ServerSeqNr, err := convertStringToTwoInt(<-MiddlemanToClient)
 
 	_ = err
 
@@ -46,19 +67,19 @@ func client(ClientToServer chan string, ServerToClient chan string) {
 
 	// Sends the new information to the server.
 
-	ClientToServer <- convertIntToString(ClientACKNr) + " " + convertIntToString(ClientSeqNr)
+	ClientToMiddleman <- convertIntToString(ClientACKNr) + " " + convertIntToString(ClientSeqNr)
 
 	for i := 0; i < 10; i++ {
 		RandMessageForServer := rand.Intn(313311122)
-		ClientToServer <- convertIntToString(RandMessageForServer)
+		ClientToMiddleman <- convertIntToString(RandMessageForServer)
 	}
 
 }
 
-func server(ClientToServer chan string, ServerToClient chan string) {
+func server(ServerToMiddleman chan string, MiddlemanToServer chan string) {
 	// Step 2
 	// Gets the client SEQ and makes it the servers ACK
-	recivedSeqNr := <-ClientToServer
+	recivedSeqNr := <-MiddlemanToServer
 	AckNr, err := convertStringToInt(recivedSeqNr)
 	AckNr = AckNr + 1
 	_ = err
@@ -69,20 +90,20 @@ func server(ClientToServer chan string, ServerToClient chan string) {
 	fmt.Println(convertIntToString(AckNr) + " " + convertIntToString(NewSeqNr))
 
 	// Sends the servers ACK and SEQ
-	ServerToClient <- convertIntToString(AckNr) + " " + convertIntToString(NewSeqNr)
+	ServerToMiddleman <- convertIntToString(AckNr) + " " + convertIntToString(NewSeqNr)
 
 	fmt.Println("Sending ACKnr and SEQnr")
 
 	//Recives ACK and SEQ From client. Establishes connection
-	RecSeq, RecACK, err := convertStringToTwoInt(<-ClientToServer)
+	RecSeq, RecACK, err := convertStringToTwoInt(<-MiddlemanToServer)
 
 	fmt.Println("Connection established!")
 	fmt.Println(RecSeq, RecACK)
-	
+
 	arry := make([]int, 10)
 	fmt.Println("Now sending messages!")
 	for i := 0; i < len(arry); i++ {
-		Message, err := convertStringToInt(<-ClientToServer)
+		Message, err := convertStringToInt(<-MiddlemanToServer)
 		_ = err
 		arry[i] = Message
 		fmt.Println(arry[i])
