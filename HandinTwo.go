@@ -112,13 +112,11 @@ func server(ServerToMiddleman chan string, MiddlemanToServer chan string) {
 	fmt.Println("Connection established!")
 	fmt.Println(RecSeq, RecACK)
 
-	arry := make([]int, 10)
 	fmt.Println("Now sending messages!")
-	for i := 0; i < len(arry); i++ {
+	for i := 0; i < 10; i++ {
 		Message, err := convertStringToInt(<-MiddlemanToServer)
 		_ = err
-		arry[i] = Message
-		fmt.Println(arry[i])
+		fmt.Println(Message)
 	}
 	fmt.Println("Messages finished")
 }
