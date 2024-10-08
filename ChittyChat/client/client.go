@@ -1,28 +1,43 @@
 package main
 
 import (
-	proto "ITUServer/grpc"
+	proto "ChittyChat/grpc"
 	"context"
 	"log"
+	"sync"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
-	conn, err := grpc.NewClient("localhost:5050", grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	var wg sync.WaitGroup
+	wg.Add(2) // We are launching two clients
+
+	go client(1, &wg)
+	go client(2, &wg)
+
+	wg.Wait() // Wait for both clients to finish
+
+}
+
+func client(clientNumber int, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("Not working")
+		log.Fatalf("could not connect. plz help")
 	}
+	defer conn.Close()
 
-	client := proto.NewITUDatabaseClient(conn)
+	client := proto.NewChittychatDBClient(conn)
 
-	students, err := client.GetStudents(context.Background(), &proto.Empty{})
+	posts, err := client.GetPosts(context.Background(), &proto.Empty{})
 	if err != nil {
-		log.Fatalf("Not working")
+		log.Fatalf("could not get posts")
 	}
-
-	for _, student := range students.Students {
-		println(" - " + student)
+	for _, post := range posts.Posts {
+		println(" - "+post, clientNumber)
 	}
 }

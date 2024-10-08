@@ -1,7 +1,7 @@
 package main
 
 import (
-	proto "ITUServer/grpc"
+	proto "ChittyChat/grpc"
 	"context"
 	"log"
 	"net"
@@ -9,38 +9,35 @@ import (
 	"google.golang.org/grpc"
 )
 
-type ITU_databaseServer struct {
-	proto.UnimplementedITUDatabaseServer
-	students []string
+type ChittychatDBServer struct {
+	proto.UnimplementedChittychatDBServer
+	posts []string
 }
 
-func (s *ITU_databaseServer) GetStudents(ctx context.Context, in *proto.Empty) (*proto.Students, error) {
-	return &proto.Students{Students: s.students}, nil
+func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.Empty) (*proto.Posts, error) {
+	return &proto.Posts{Posts: s.posts}, nil
 }
 
 func main() {
-	server := &ITU_databaseServer{students: []string{}}
-	server.students = append(server.students, "John")
-	server.students = append(server.students, "Jane")
-	server.students = append(server.students, "Alice")
-	server.students = append(server.students, "Bob")
+	server := &ChittychatDBServer{posts: []string{}}
+	server.posts = append(server.posts, "ma dick big")
 
 	server.start_server()
 }
 
-func (s *ITU_databaseServer) start_server() {
+func (s *ChittychatDBServer) start_server() {
 	grpcServer := grpc.NewServer()
-	listener, err := net.Listen("tcp", ":5050")
+	listener, err := net.Listen("tcp", ":6969")
 	if err != nil {
 		log.Fatalf("Did not work")
 	}
 
-	proto.RegisterITUDatabaseServer(grpcServer, s)
+	proto.RegisterChittychatDBServer(grpcServer, s)
 
 	err = grpcServer.Serve(listener)
 
 	if err != nil {
-		log.Fatalf("Did not work")
+		log.Fatalf("du en hoe")
 	}
 
 }
