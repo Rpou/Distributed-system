@@ -18,6 +18,26 @@ func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.Empty) (*pr
 	return &proto.Posts{Posts: s.posts}, nil
 }
 
+/*
+	func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
+		return &proto.Connected{Con: true}, nil
+	}
+
+	func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
+		return &proto.Connected{Con: true}, nil
+	}
+*/
+
+
+func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*proto.Posted, error) {
+	//log.Printf("Received post: %s with Lamport time: %d", in.Post, in.LamportTime)
+	if(len(in.Post) <= 128){
+		s.posts = append(s.posts, in.Post)
+		return &proto.Posted{Posted: true}, nil
+	}
+	return &proto.Posted{Posted: false}, nil
+}
+
 func main() {
 	server := &ChittychatDBServer{posts: []string{}}
 	server.posts = append(server.posts, "ma dick big")

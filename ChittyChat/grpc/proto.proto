@@ -3,19 +3,18 @@ option go_package = "Chittychat/grpc/proto";
 
 message Posts {
     repeated string posts = 1;
-    
+    int64 lamport_time = 2;
 }
 
 message Empty {}
 
 service ChittychatDB {
     rpc GetPosts (Empty) returns (Posts) {};
+    rpc PublishPost (Post) returns (Posted) {};
 
-    rpc Connect (ClientNumber) returns (Connected);
-    rpc Disconnect (ClientNumber) returns (Connected);
+    rpc Connect (ClientNumber) returns (Connected) {};
+    rpc Disconnect (ClientNumber) returns (Connected) {};
 
-    rpc PublishPost (Post) returns (Posted);
-    
 }
 
 message ClientNumber {
@@ -34,6 +33,4 @@ message Post {
 message Posted {
     bool posted = 1;
 }
-
-
 
