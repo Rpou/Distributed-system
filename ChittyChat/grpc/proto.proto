@@ -1,12 +1,39 @@
 syntax = "proto3";
-option go_package = "ITUServer/grpc/proto";
+option go_package = "Chittychat/grpc/proto";
 
-message Students {
-    repeated string students = 1;
+message Posts {
+    repeated string posts = 1;
+    
 }
 
 message Empty {}
 
-service ITUDatabase {
-    rpc GetStudents (Empty) returns (Students) {};
+service ChittychatDB {
+    rpc GetPosts (Empty) returns (Posts) {};
+
+    rpc Connect (ClientNumber) returns (Connected);
+    rpc Disconnect (ClientNumber) returns (Connected);
+
+    rpc PublishPost (Post) returns (Posted);
+    
 }
+
+message ClientNumber {
+    int64 cn = 1;
+}
+
+message Connected {
+    bool con = 1;
+}
+
+message Post {
+    string post = 1;
+    int64 lamport_time = 2;
+}
+
+message Posted {
+    bool posted;
+}
+
+
+
