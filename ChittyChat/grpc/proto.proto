@@ -32,7 +32,7 @@ message Post {
 }
 
 message Posted {
-    bool posted;
+    bool posted = 1;
 }
 
 

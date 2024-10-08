@@ -19,101 +19,215 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ITUDatabase_GetStudents_FullMethodName = "/ITUDatabase/GetStudents"
+	ChittychatDB_GetPosts_FullMethodName    = "/ChittychatDB/GetPosts"
+	ChittychatDB_Connect_FullMethodName     = "/ChittychatDB/Connect"
+	ChittychatDB_Disconnect_FullMethodName  = "/ChittychatDB/Disconnect"
+	ChittychatDB_PublishPost_FullMethodName = "/ChittychatDB/PublishPost"
 )
 
-// ITUDatabaseClient is the client API for ITUDatabase service.
+// ChittychatDBClient is the client API for ChittychatDB service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ITUDatabaseClient interface {
-	GetStudents(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Students, error)
+type ChittychatDBClient interface {
+	GetPosts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Posts, error)
+	Connect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error)
+	Disconnect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error)
+	PublishPost(ctx context.Context, in *Post, opts ...grpc.CallOption) (*Posted, error)
 }
 
-type iTUDatabaseClient struct {
+type chittychatDBClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewITUDatabaseClient(cc grpc.ClientConnInterface) ITUDatabaseClient {
-	return &iTUDatabaseClient{cc}
+func NewChittychatDBClient(cc grpc.ClientConnInterface) ChittychatDBClient {
+	return &chittychatDBClient{cc}
 }
 
-func (c *iTUDatabaseClient) GetStudents(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Students, error) {
+func (c *chittychatDBClient) GetPosts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Posts, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Students)
-	err := c.cc.Invoke(ctx, ITUDatabase_GetStudents_FullMethodName, in, out, cOpts...)
+	out := new(Posts)
+	err := c.cc.Invoke(ctx, ChittychatDB_GetPosts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ITUDatabaseServer is the server API for ITUDatabase service.
-// All implementations must embed UnimplementedITUDatabaseServer
-// for forward compatibility.
-type ITUDatabaseServer interface {
-	GetStudents(context.Context, *Empty) (*Students, error)
-	mustEmbedUnimplementedITUDatabaseServer()
+func (c *chittychatDBClient) Connect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Connected)
+	err := c.cc.Invoke(ctx, ChittychatDB_Connect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-// UnimplementedITUDatabaseServer must be embedded to have
+func (c *chittychatDBClient) Disconnect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Connected)
+	err := c.cc.Invoke(ctx, ChittychatDB_Disconnect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chittychatDBClient) PublishPost(ctx context.Context, in *Post, opts ...grpc.CallOption) (*Posted, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Posted)
+	err := c.cc.Invoke(ctx, ChittychatDB_PublishPost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ChittychatDBServer is the server API for ChittychatDB service.
+// All implementations must embed UnimplementedChittychatDBServer
+// for forward compatibility.
+type ChittychatDBServer interface {
+	GetPosts(context.Context, *Empty) (*Posts, error)
+	Connect(context.Context, *ClientNumber) (*Connected, error)
+	Disconnect(context.Context, *ClientNumber) (*Connected, error)
+	PublishPost(context.Context, *Post) (*Posted, error)
+	mustEmbedUnimplementedChittychatDBServer()
+}
+
+// UnimplementedChittychatDBServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedITUDatabaseServer struct{}
+type UnimplementedChittychatDBServer struct{}
 
-func (UnimplementedITUDatabaseServer) GetStudents(context.Context, *Empty) (*Students, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStudents not implemented")
+func (UnimplementedChittychatDBServer) GetPosts(context.Context, *Empty) (*Posts, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPosts not implemented")
 }
-func (UnimplementedITUDatabaseServer) mustEmbedUnimplementedITUDatabaseServer() {}
-func (UnimplementedITUDatabaseServer) testEmbeddedByValue()                     {}
+func (UnimplementedChittychatDBServer) Connect(context.Context, *ClientNumber) (*Connected, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Connect not implemented")
+}
+func (UnimplementedChittychatDBServer) Disconnect(context.Context, *ClientNumber) (*Connected, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Disconnect not implemented")
+}
+func (UnimplementedChittychatDBServer) PublishPost(context.Context, *Post) (*Posted, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishPost not implemented")
+}
+func (UnimplementedChittychatDBServer) mustEmbedUnimplementedChittychatDBServer() {}
+func (UnimplementedChittychatDBServer) testEmbeddedByValue()                      {}
 
-// UnsafeITUDatabaseServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ITUDatabaseServer will
+// UnsafeChittychatDBServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ChittychatDBServer will
 // result in compilation errors.
-type UnsafeITUDatabaseServer interface {
-	mustEmbedUnimplementedITUDatabaseServer()
+type UnsafeChittychatDBServer interface {
+	mustEmbedUnimplementedChittychatDBServer()
 }
 
-func RegisterITUDatabaseServer(s grpc.ServiceRegistrar, srv ITUDatabaseServer) {
-	// If the following call pancis, it indicates UnimplementedITUDatabaseServer was
+func RegisterChittychatDBServer(s grpc.ServiceRegistrar, srv ChittychatDBServer) {
+	// If the following call pancis, it indicates UnimplementedChittychatDBServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ITUDatabase_ServiceDesc, srv)
+	s.RegisterService(&ChittychatDB_ServiceDesc, srv)
 }
 
-func _ITUDatabase_GetStudents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ChittychatDB_GetPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ITUDatabaseServer).GetStudents(ctx, in)
+		return srv.(ChittychatDBServer).GetPosts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ITUDatabase_GetStudents_FullMethodName,
+		FullMethod: ChittychatDB_GetPosts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ITUDatabaseServer).GetStudents(ctx, req.(*Empty))
+		return srv.(ChittychatDBServer).GetPosts(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ITUDatabase_ServiceDesc is the grpc.ServiceDesc for ITUDatabase service.
+func _ChittychatDB_Connect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClientNumber)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChittychatDBServer).Connect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChittychatDB_Connect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChittychatDBServer).Connect(ctx, req.(*ClientNumber))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChittychatDB_Disconnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClientNumber)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChittychatDBServer).Disconnect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChittychatDB_Disconnect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChittychatDBServer).Disconnect(ctx, req.(*ClientNumber))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChittychatDB_PublishPost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Post)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChittychatDBServer).PublishPost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChittychatDB_PublishPost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChittychatDBServer).PublishPost(ctx, req.(*Post))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ChittychatDB_ServiceDesc is the grpc.ServiceDesc for ChittychatDB service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ITUDatabase_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ITUDatabase",
-	HandlerType: (*ITUDatabaseServer)(nil),
+var ChittychatDB_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "ChittychatDB",
+	HandlerType: (*ChittychatDBServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetStudents",
-			Handler:    _ITUDatabase_GetStudents_Handler,
+			MethodName: "GetPosts",
+			Handler:    _ChittychatDB_GetPosts_Handler,
+		},
+		{
+			MethodName: "Connect",
+			Handler:    _ChittychatDB_Connect_Handler,
+		},
+		{
+			MethodName: "Disconnect",
+			Handler:    _ChittychatDB_Disconnect_Handler,
+		},
+		{
+			MethodName: "PublishPost",
+			Handler:    _ChittychatDB_PublishPost_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
