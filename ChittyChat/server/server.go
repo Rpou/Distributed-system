@@ -28,10 +28,9 @@ func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.Empty) (*pr
 	}
 */
 
-
 func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*proto.Posted, error) {
 	//log.Printf("Received post: %s with Lamport time: %d", in.Post, in.LamportTime)
-	if(len(in.Post) <= 128){
+	if len(in.Post) <= 128 {
 		s.posts = append(s.posts, in.Post)
 		return &proto.Posted{Posted: true}, nil
 	}
@@ -40,7 +39,7 @@ func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*
 
 func main() {
 	server := &ChittychatDBServer{posts: []string{}}
-	server.posts = append(server.posts, "ma dick big")
+	server.posts = append(server.posts, "Cause i got first like")
 
 	server.start_server()
 }
@@ -49,7 +48,7 @@ func (s *ChittychatDBServer) start_server() {
 	grpcServer := grpc.NewServer()
 	listener, err := net.Listen("tcp", ":6969")
 	if err != nil {
-		log.Fatalf("Did not work")
+		log.Fatalf("Server could not start1")
 	}
 
 	proto.RegisterChittychatDBServer(grpcServer, s)
@@ -57,7 +56,7 @@ func (s *ChittychatDBServer) start_server() {
 	err = grpcServer.Serve(listener)
 
 	if err != nil {
-		log.Fatalf("du en hoe")
+		log.Fatalf("Server could not start2")
 	}
 
 }

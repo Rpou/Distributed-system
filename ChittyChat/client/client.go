@@ -3,6 +3,7 @@ package main
 import (
 	proto "ChittyChat/grpc"
 	"context"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -18,6 +19,7 @@ func main() {
 
 	go client(1, &wg)
 	go client(2, &wg)
+	go client(3, &wg)
 
 	wg.Wait() // Wait for both clients to finish
 
@@ -29,7 +31,7 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 
 		conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			log.Fatalf("could not connect. plz help")
+			log.Fatalf("Client", clientNumber, "could not connect")
 		}
 		defer conn.Close()
 
@@ -40,24 +42,25 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 			log.Fatalf("could not post")
 		}*/
 		post := &proto.Post{
-			Post:        "I am so cool" + string(clientNumber),
+			Post:        fmt.Sprintf("I am so cool, sent by: %d", clientNumber),
 			LamportTime: 32121321,
 		}
 
 		worked, err := client.PublishPost(context.Background(), post)
 		if err != nil || worked.Posted == false {
-			log.Fatalf("could not post")
+			log.Fatalf("Client", clientNumber, "Could not post")
 		}
 
 		posts, err := client.GetPosts(context.Background(), &proto.Empty{})
 		if err != nil {
-			log.Fatalf("could not get posts")
+			log.Fatalf("Client", clientNumber, "Could not get posts")
 		}
 
+		println("Messages recieved by client:", clientNumber)
 		for _, post := range posts.Posts {
-			println(" - "+post, clientNumber)
+			println(" - " + post)
 		}
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 2)
 	}
 
 }
