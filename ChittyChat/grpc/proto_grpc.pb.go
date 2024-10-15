@@ -29,7 +29,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChittychatDBClient interface {
-	GetPosts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Posts, error)
+	GetPosts(ctx context.Context, in *ClientLT, opts ...grpc.CallOption) (*Posts, error)
 	PublishPost(ctx context.Context, in *Post, opts ...grpc.CallOption) (*Posted, error)
 	Connect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error)
 	Disconnect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error)
@@ -43,7 +43,7 @@ func NewChittychatDBClient(cc grpc.ClientConnInterface) ChittychatDBClient {
 	return &chittychatDBClient{cc}
 }
 
-func (c *chittychatDBClient) GetPosts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Posts, error) {
+func (c *chittychatDBClient) GetPosts(ctx context.Context, in *ClientLT, opts ...grpc.CallOption) (*Posts, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Posts)
 	err := c.cc.Invoke(ctx, ChittychatDB_GetPosts_FullMethodName, in, out, cOpts...)
@@ -87,7 +87,7 @@ func (c *chittychatDBClient) Disconnect(ctx context.Context, in *ClientNumber, o
 // All implementations must embed UnimplementedChittychatDBServer
 // for forward compatibility.
 type ChittychatDBServer interface {
-	GetPosts(context.Context, *Empty) (*Posts, error)
+	GetPosts(context.Context, *ClientLT) (*Posts, error)
 	PublishPost(context.Context, *Post) (*Posted, error)
 	Connect(context.Context, *ClientNumber) (*Connected, error)
 	Disconnect(context.Context, *ClientNumber) (*Connected, error)
@@ -101,7 +101,7 @@ type ChittychatDBServer interface {
 // pointer dereference when methods are called.
 type UnimplementedChittychatDBServer struct{}
 
-func (UnimplementedChittychatDBServer) GetPosts(context.Context, *Empty) (*Posts, error) {
+func (UnimplementedChittychatDBServer) GetPosts(context.Context, *ClientLT) (*Posts, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPosts not implemented")
 }
 func (UnimplementedChittychatDBServer) PublishPost(context.Context, *Post) (*Posted, error) {
@@ -135,7 +135,7 @@ func RegisterChittychatDBServer(s grpc.ServiceRegistrar, srv ChittychatDBServer)
 }
 
 func _ChittychatDB_GetPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(ClientLT)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func _ChittychatDB_GetPosts_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: ChittychatDB_GetPosts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChittychatDBServer).GetPosts(ctx, req.(*Empty))
+		return srv.(ChittychatDBServer).GetPosts(ctx, req.(*ClientLT))
 	}
 	return interceptor(ctx, in, info, handler)
 }
