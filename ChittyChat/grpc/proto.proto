@@ -32,5 +32,5 @@ message Post {
 
 message Posted {
     bool posted = 1;
+    int64 lamport_time = 2;
 }
-

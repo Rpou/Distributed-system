@@ -22,12 +22,12 @@ func main() {
 	go client(3, &wg)
 
 	wg.Wait() // Wait for both clients to finish
-
 }
 
 func client(clientNumber int, wg *sync.WaitGroup) {
 	for {
 		defer wg.Done()
+		LamportTime := 1
 
 		conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -43,7 +43,7 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 		}*/
 		post := &proto.Post{
 			Post:        fmt.Sprintf("I am so cool, sent by: %d", clientNumber),
-			LamportTime: 32121321,
+			LamportTime: int64(LamportTime),
 		}
 
 		worked, err := client.PublishPost(context.Background(), post)
