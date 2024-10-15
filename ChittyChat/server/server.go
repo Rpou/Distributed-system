@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"sync"
 
 	"google.golang.org/grpc"
 )
@@ -14,9 +15,11 @@ type ChittychatDBServer struct {
 	proto.UnimplementedChittychatDBServer
 	posts             []string
 	serverLamportTime int64
+	mu                sync.Mutex
 }
 
 func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.Empty) (*proto.Posts, error) {
+
 	return &proto.Posts{Posts: s.posts}, nil
 }
 
@@ -32,18 +35,14 @@ func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.Empty) (*pr
 
 func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*proto.Posted, error) {
 	//log.Printf("Received post: %s with Lamport time: %d", in.Post, in.LamportTime)
-	if in.LamportTime > int64(s.serverLamportTime) {
-		s.serverLamportTime = int64(in.LamportTime) + 1
-	} else {
-		s.serverLamportTime += 1
-	}
+	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 
 	if len(in.Post) <= 128 {
-		postWithLamportTime := in.Post + " " + strconv.FormatInt(in.LamportTime, 10)
+		postWithLamportTime := in.Post + " " + strconv.FormatInt(s.serverLamportTime, 10)
 		s.posts = append(s.posts, postWithLamportTime)
-		return &proto.Posted{Posted: true}, nil
+		return &proto.Posted{Posted: true, LamportTime: s.serverLamportTime}, nil
 	}
-	return &proto.Posted{Posted: false}, nil
+	return &proto.Posted{Posted: false, LamportTime: s.serverLamportTime}, nil
 }
 
 func main() {

@@ -25,9 +25,9 @@ func main() {
 }
 
 func client(clientNumber int, wg *sync.WaitGroup) {
+	LamportTime := 1
 	for {
 		defer wg.Done()
-		LamportTime := 1
 
 		conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -46,10 +46,11 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 			LamportTime: int64(LamportTime),
 		}
 
-		worked, err := client.PublishPost(context.Background(), post)
-		if err != nil || worked.Posted == false {
+		serverReturn, err := client.PublishPost(context.Background(), post)
+		if err != nil || serverReturn.Posted == false {
 			log.Fatalf("Client", clientNumber, "Could not post")
 		}
+		LamportTime = int(serverReturn.LamportTime) //lamport time updates from what it recieved
 
 		posts, err := client.GetPosts(context.Background(), &proto.Empty{})
 		if err != nil {
