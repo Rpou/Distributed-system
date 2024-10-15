@@ -22,7 +22,7 @@ func main() {
 	go client(2, &wg)
 	go client(3, &wg)
 
-	wg.Wait() // Wait for both clients to finish
+	wg.Wait() // Wait for all clients to finish
 }
 
 func client(clientNumber int, wg *sync.WaitGroup) {
@@ -38,12 +38,8 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 
 		client := proto.NewChittychatDBClient(conn)
 
-		/*post ,err := client.PublishPost(context.Background(), &proto.Post{})
-		if err != nil {
-			log.Fatalf("could not post")
-		}*/
 		post := &proto.Post{ //Making a Post
-			Post:        fmt.Sprintf("I am so cool, sent by: %d", clientNumber),
+			Post:        fmt.Sprintf("I am so cool, sent by clientNr: %d", clientNumber),
 			LamportTime: int64(LamportTime),
 		}
 
@@ -68,13 +64,13 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 		//20% chance it disconnects everytime it has made a post.
 		randomNumber := rand.Intn(5) + 1
 		if randomNumber == 1 {
-			client.Disconnect(context.Background(), &proto.ClientNumber{Cn: int64(clientNumber)})
+			client.Disconnect(context.Background(), &proto.ClientInfo{Cn: int64(clientNumber), LamportTime: int64(LamportTime)})
 			for {
 				// Sleeps for 1 sec, and then has a 20% chance of connecting again. if it fails, it will try again after 1 sec
 				time.Sleep(time.Second)
 				randomNumber = rand.Intn(5) + 1
 				if randomNumber == 2 {
-					client.Connect(context.Background(), &proto.ClientNumber{Cn: int64(clientNumber)})
+					client.Connect(context.Background(), &proto.ClientInfo{Cn: int64(clientNumber), LamportTime: int64(LamportTime)})
 					break
 				}
 			}

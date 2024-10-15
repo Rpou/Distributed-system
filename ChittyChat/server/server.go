@@ -3,6 +3,7 @@ package main
 import (
 	proto "ChittyChat/grpc"
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -20,25 +21,28 @@ type ChittychatDBServer struct {
 
 func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.ClientLT) (*proto.Posts, error) {
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
+
 	return &proto.Posts{Posts: s.posts, LamportTime: s.serverLamportTime}, nil
 }
 
-
-func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
-	return &proto.Connected{Con: true}, nil
+func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientInfo) (*proto.Empty, error) {
+	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
+	s.posts = append(s.posts, fmt.Sprintf("The following client connected: %d", in.Cn))
+	return &proto.Empty{}, nil
 }
 
-func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
-	return &proto.Connected{Con: true}, nil
+func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientInfo) (*proto.Empty, error) {
+	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
+	s.posts = append(s.posts, fmt.Sprintf("The following client disconnected: %d", in.Cn))
+	return &proto.Empty{}, nil
 }
-
 
 func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*proto.Posted, error) {
 	//log.Printf("Received post: %s with Lamport time: %d", in.Post, in.LamportTime)
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 
 	if len(in.Post) <= 128 {
-		postWithLamportTime := in.Post + " " + strconv.FormatInt(s.serverLamportTime, 10)
+		postWithLamportTime := in.Post + " ,Lamport time: " + strconv.FormatInt(s.serverLamportTime, 10)
 		s.posts = append(s.posts, postWithLamportTime)
 		return &proto.Posted{Posted: true, LamportTime: s.serverLamportTime}, nil
 	}
@@ -47,7 +51,7 @@ func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*
 
 func main() {
 	server := &ChittychatDBServer{posts: []string{}, serverLamportTime: 1}
-	server.posts = append(server.posts, "Cause i got first like")
+	server.posts = append(server.posts, "We have begun")
 
 	server.start_server()
 }
