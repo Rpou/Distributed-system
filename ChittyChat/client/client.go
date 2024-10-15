@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -41,18 +42,20 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 		if err != nil {
 			log.Fatalf("could not post")
 		}*/
-		post := &proto.Post{
+		post := &proto.Post{ //Making a Post
 			Post:        fmt.Sprintf("I am so cool, sent by: %d", clientNumber),
 			LamportTime: int64(LamportTime),
 		}
 
+		// Sends the post to the server
 		serverReturn, err := client.PublishPost(context.Background(), post)
 		if err != nil || serverReturn.Posted == false {
 			log.Fatalf("Client", clientNumber, "Could not post")
 		}
 		LamportTime = int(serverReturn.LamportTime) //lamport time updates from what it recieved
 
-		posts, err := client.GetPosts(context.Background(), &proto.Empty{})
+		// retrives all the posts from the server
+		posts, err := client.GetPosts(context.Background(), &proto.ClientLT{LamportTime: int64(LamportTime)})
 		if err != nil {
 			log.Fatalf("Client", clientNumber, "Could not get posts")
 		}
@@ -61,6 +64,22 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 		for _, post := range posts.Posts {
 			println(" - " + post)
 		}
+
+		//20% chance it disconnects everytime it has made a post.
+		randomNumber := rand.Intn(5) + 1
+		if randomNumber == 1 {
+			client.Disconnect(context.Background(), &proto.ClientNumber{Cn: int64(clientNumber)})
+			for {
+				// Sleeps for 1 sec, and then has a 20% chance of connecting again. if it fails, it will try again after 1 sec
+				time.Sleep(time.Second)
+				randomNumber = rand.Intn(5) + 1
+				if randomNumber == 2 {
+					client.Connect(context.Background(), &proto.ClientNumber{Cn: int64(clientNumber)})
+					break
+				}
+			}
+		}
+
 		time.Sleep(time.Second * 2)
 	}
 

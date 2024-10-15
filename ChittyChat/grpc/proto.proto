@@ -12,17 +12,14 @@ service ChittychatDB {
     rpc GetPosts (ClientLT) returns (Posts) {};
     rpc PublishPost (Post) returns (Posted) {};
 
-    rpc Connect (ClientNumber) returns (Connected) {};
-    rpc Disconnect (ClientNumber) returns (Connected) {};
+    rpc Connect (ClientInfo) returns (Empty) {};
+    rpc Disconnect (ClientInfo) returns (Empty) {};
 
 }
 
-message ClientNumber {
+message ClientInfo {
     int64 cn = 1;
-}
-
-message Connected {
-    bool con = 1;
+    int64 lamport_time = 2;
 }
 
 message Post {

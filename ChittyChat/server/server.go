@@ -18,20 +18,20 @@ type ChittychatDBServer struct {
 	mu                sync.Mutex
 }
 
-func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.Empty) (*proto.Posts, error) {
-
-	return &proto.Posts{Posts: s.posts}, nil
+func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.ClientLT) (*proto.Posts, error) {
+	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
+	return &proto.Posts{Posts: s.posts, LamportTime: s.serverLamportTime}, nil
 }
 
-/*
-	func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
-		return &proto.Connected{Con: true}, nil
-	}
 
-	func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
-		return &proto.Connected{Con: true}, nil
-	}
-*/
+func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
+	return &proto.Connected{Con: true}, nil
+}
+
+func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientNumber) (*proto.Connected, error) {
+	return &proto.Connected{Con: true}, nil
+}
+
 
 func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*proto.Posted, error) {
 	//log.Printf("Received post: %s with Lamport time: %d", in.Post, in.LamportTime)
