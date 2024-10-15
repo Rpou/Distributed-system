@@ -31,8 +31,8 @@ const (
 type ChittychatDBClient interface {
 	GetPosts(ctx context.Context, in *ClientLT, opts ...grpc.CallOption) (*Posts, error)
 	PublishPost(ctx context.Context, in *Post, opts ...grpc.CallOption) (*Posted, error)
-	Connect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error)
-	Disconnect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error)
+	Connect(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (*Empty, error)
+	Disconnect(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type chittychatDBClient struct {
@@ -63,9 +63,9 @@ func (c *chittychatDBClient) PublishPost(ctx context.Context, in *Post, opts ...
 	return out, nil
 }
 
-func (c *chittychatDBClient) Connect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error) {
+func (c *chittychatDBClient) Connect(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Connected)
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, ChittychatDB_Connect_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -73,9 +73,9 @@ func (c *chittychatDBClient) Connect(ctx context.Context, in *ClientNumber, opts
 	return out, nil
 }
 
-func (c *chittychatDBClient) Disconnect(ctx context.Context, in *ClientNumber, opts ...grpc.CallOption) (*Connected, error) {
+func (c *chittychatDBClient) Disconnect(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Connected)
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, ChittychatDB_Disconnect_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -89,8 +89,8 @@ func (c *chittychatDBClient) Disconnect(ctx context.Context, in *ClientNumber, o
 type ChittychatDBServer interface {
 	GetPosts(context.Context, *ClientLT) (*Posts, error)
 	PublishPost(context.Context, *Post) (*Posted, error)
-	Connect(context.Context, *ClientNumber) (*Connected, error)
-	Disconnect(context.Context, *ClientNumber) (*Connected, error)
+	Connect(context.Context, *ClientInfo) (*Empty, error)
+	Disconnect(context.Context, *ClientInfo) (*Empty, error)
 	mustEmbedUnimplementedChittychatDBServer()
 }
 
@@ -107,10 +107,10 @@ func (UnimplementedChittychatDBServer) GetPosts(context.Context, *ClientLT) (*Po
 func (UnimplementedChittychatDBServer) PublishPost(context.Context, *Post) (*Posted, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PublishPost not implemented")
 }
-func (UnimplementedChittychatDBServer) Connect(context.Context, *ClientNumber) (*Connected, error) {
+func (UnimplementedChittychatDBServer) Connect(context.Context, *ClientInfo) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Connect not implemented")
 }
-func (UnimplementedChittychatDBServer) Disconnect(context.Context, *ClientNumber) (*Connected, error) {
+func (UnimplementedChittychatDBServer) Disconnect(context.Context, *ClientInfo) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Disconnect not implemented")
 }
 func (UnimplementedChittychatDBServer) mustEmbedUnimplementedChittychatDBServer() {}
@@ -171,7 +171,7 @@ func _ChittychatDB_PublishPost_Handler(srv interface{}, ctx context.Context, dec
 }
 
 func _ChittychatDB_Connect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ClientNumber)
+	in := new(ClientInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -183,13 +183,13 @@ func _ChittychatDB_Connect_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: ChittychatDB_Connect_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChittychatDBServer).Connect(ctx, req.(*ClientNumber))
+		return srv.(ChittychatDBServer).Connect(ctx, req.(*ClientInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ChittychatDB_Disconnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ClientNumber)
+	in := new(ClientInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func _ChittychatDB_Disconnect_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: ChittychatDB_Disconnect_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChittychatDBServer).Disconnect(ctx, req.(*ClientNumber))
+		return srv.(ChittychatDBServer).Disconnect(ctx, req.(*ClientInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
