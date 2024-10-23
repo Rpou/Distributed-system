@@ -15,22 +15,46 @@ import (
 
 func main() {
 
+	chats := []string{
+		"Excited for the weekend! 😎 #TGIF",
+		"Just finished a great book! Highly recommend it. 📚",
+		"Coffee first, adulting second. ☕️",
+		"The sunset today was absolutely stunning! 🌅",
+		"Anyone else obsessed with this new song? 🎧 #NowPlaying",
+		"Feeling grateful for all the little things in life. 🙏",
+		"Can’t wait to travel again! ✈️ #Wanderlust",
+		"Working from home in pajamas is the best! 🧸 #RemoteLife",
+		"Looking for Netflix recommendations. What should I watch next? 🎬",
+		"New day, new goals. Let’s get it! 💪",
+		"I just love autumn. The colors are so beautiful! 🍁🍂",
+		"Is it just me, or did today feel extra long? ⏳",
+		"I miss spontaneous road trips! 🚗",
+		"Trying out a new recipe today. Fingers crossed! 🍳",
+		"Can’t believe it’s almost the end of the year! 🎉",
+		"Just ran my first 5K! Feeling amazing! 🏃‍♂️",
+		"Let’s make kindness go viral. Be good to each other! 💛",
+		"Monday motivation: Keep pushing forward! 🚀",
+		"Grabbing brunch with friends this weekend. Can’t wait! 🥑🥂",
+		"Loving this new podcast. So insightful! 🎙️ #PodcastRecommendation",
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(2) // We are launching two clients
 
-	go client(1, &wg)
-	go client(2, &wg)
-	go client(3, &wg)
+	go client(1, &wg, chats)
+	go client(2, &wg, chats)
+	go client(3, &wg, chats)
 
 	wg.Wait() // Wait for all clients to finish
 }
 
-func client(clientNumber int, wg *sync.WaitGroup) {
+func client(clientNumber int, wg *sync.WaitGroup, chats []string) {
 	LamportTime := 1
 	for {
 		defer wg.Done()
 
 		conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
+
 		if err != nil {
 			log.Fatalf("Client", clientNumber, "could not connect")
 		}
@@ -38,8 +62,14 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 
 		client := proto.NewChittychatDBClient(conn)
 
+		if LamportTime == 1 {
+			client.Connect(context.Background(), &proto.ClientInfo{Cn: int64(clientNumber), LamportTime: int64(LamportTime)})
+		}
+
+		randomChatNr := rand.Intn(20)
+
 		post := &proto.Post{ //Making a Post
-			Post:        fmt.Sprintf("I am so cool, sent by clientNr: %d", clientNumber),
+			Post:        fmt.Sprintf(chats[randomChatNr]+", sent by clientNr: %d", clientNumber),
 			LamportTime: int64(LamportTime),
 		}
 
