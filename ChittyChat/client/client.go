@@ -46,14 +46,14 @@ func client(clientNumber int, wg *sync.WaitGroup) {
 		// Sends the post to the server
 		serverReturn, err := client.PublishPost(context.Background(), post)
 		if err != nil || serverReturn.Posted == false {
-			log.Fatalf("Client", clientNumber, "Could not post")
+			log.Fatalf("Client ", clientNumber, "Could not post")
 		}
 		LamportTime = int(serverReturn.LamportTime) //lamport time updates from what it recieved
 
 		// retrives all the posts from the server
 		posts, err := client.GetPosts(context.Background(), &proto.ClientLT{LamportTime: int64(LamportTime)})
 		if err != nil {
-			log.Fatalf("Client", clientNumber, "Could not get posts")
+			log.Fatalf("Client ", clientNumber, "Could not get posts")
 		}
 
 		println("Messages recieved by client:", clientNumber)

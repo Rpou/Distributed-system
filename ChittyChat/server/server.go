@@ -27,13 +27,15 @@ func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.ClientLT) (
 
 func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientInfo) (*proto.Empty, error) {
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
-	s.posts = append(s.posts, fmt.Sprintf("The following client connected: %d", in.Cn))
+	messageWithLamportTime := " Lamport time: (" + strconv.FormatInt(s.serverLamportTime, 10) + ", " + strconv.FormatInt(in.Cn, 10) + ")"
+	s.posts = append(s.posts, fmt.Sprintf("The following client connected: %d"+messageWithLamportTime, in.Cn))
 	return &proto.Empty{}, nil
 }
 
 func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientInfo) (*proto.Empty, error) {
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
-	s.posts = append(s.posts, fmt.Sprintf("The following client disconnected: %d", in.Cn))
+	messageWithLamportTime := " Lamport time: (" + strconv.FormatInt(s.serverLamportTime, 10) + ", " + strconv.FormatInt(in.Cn, 10) + ")"
+	s.posts = append(s.posts, fmt.Sprintf("The following client disconnected: %d"+messageWithLamportTime, in.Cn))
 	return &proto.Empty{}, nil
 }
 
@@ -42,7 +44,7 @@ func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 
 	if len(in.Post) <= 128 {
-		postWithLamportTime := in.Post + " ,Lamport time: " + strconv.FormatInt(s.serverLamportTime, 10)
+		postWithLamportTime := in.Post + ", Lamport time: (" + strconv.FormatInt(s.serverLamportTime, 10) + ", " + string(in.Post[len(in.Post)-1]) + ")"
 		s.posts = append(s.posts, postWithLamportTime)
 		return &proto.Posted{Posted: true, LamportTime: s.serverLamportTime}, nil
 	}
