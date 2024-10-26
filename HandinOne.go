@@ -1,15 +1,15 @@
 package main
 
-// This program works by having 5 go-rutines for both philosiphers and forks.
+// This program works by having 5 go-rutines for philosiphers.
 // Each philosipher tries to take one fork first, and then requests the next fork.
 // If the philosipher fails to take the first fork (it takes too long time to request it)
-// the philosipher will try again.
+// the philosipher will try again. (first he will think)
 // If the philosipher successfully takes the first fork, he tries to request the next fork.
 // If this takes too long, then he will drop both forks, and try again.
 
 // The program will not reach a deadlock, because if philosipher 1 tries to access the fork array, and philosipher 2
 // is already holding onto that fork, philosipher 1 will not do anything with the fork. the fork array will ignore the request.
-// Another reason it wont deadlock, is because there is a set amount of time, to take each fork.
+// Another reason it won't deadlock, is because there is a set amount of time, to take each fork.
 // If the fork has not been taken within that timeframe, the philosipher will stop the request.
 
 import (
@@ -44,7 +44,7 @@ func main() {
 	go philosipher(5, fork5, fork1)
 	for {
 		//change the number in "Status" to make them able to eat more than 3 times.
-		if Status(100000000) == 1 {
+		if Status(3) == 1 {
 			break
 		}
 	}
@@ -54,8 +54,7 @@ func main() {
 func philosipher(number int, leftFork, rightFork chan struct{}) {
 	for {
 		eating := false
-		//startTime := time.Now()
-		timeDuration := time.Duration(rand.Float32() * 10000)
+		time.Sleep(5 * time.Millisecond)
 
 		// Try to pick up the left fork within the timeout duration
 		select {
@@ -67,8 +66,6 @@ func philosipher(number int, leftFork, rightFork chan struct{}) {
 				eating = true
 				TimesEaten[number-1]++
 				fmt.Println("Philosopher", number, "is eating...")
-
-				time.Sleep(timeDuration) // Simulate eating time
 
 				// Release both forks
 				leftFork <- struct{}{}
@@ -83,14 +80,13 @@ func philosipher(number int, leftFork, rightFork chan struct{}) {
 
 		if !eating {
 			fmt.Println("Philosopher", number, "is thinking...")
-			time.Sleep(timeDuration) // Simulate thinking time before retrying
 		}
 	}
 }
 
 func Status(limit int) int {
 	for {
-		time.Sleep(time.Duration(rand.Float64() * 100000))
+		time.Sleep(time.Duration(rand.Float64() * 1000))
 		for i := 0; i < 100; i++ {
 			//fmt.Println(TimesEaten)
 			if TimesEaten[0] > limit && TimesEaten[1] > limit && TimesEaten[2] > limit && TimesEaten[3] > limit && TimesEaten[4] > limit {
