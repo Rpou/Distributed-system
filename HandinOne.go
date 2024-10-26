@@ -19,99 +19,71 @@ import (
 )
 
 var (
-	forkArry   = []int{0, 0, 0, 0, 0} // array to keep track of the forks and who holds onto a fork.
 	TimesEaten = []int{0, 0, 0, 0, 0} // array to see, how many times each philosipher has eaten.
 )
 
 func main() {
-	ch1 := make(chan int)
-	ch2 := make(chan int)
-	ch3 := make(chan int)
-	ch4 := make(chan int)
-	ch5 := make(chan int)
+	fork1 := make(chan struct{}, 1)
+	fork2 := make(chan struct{}, 1)
+	fork3 := make(chan struct{}, 1)
+	fork4 := make(chan struct{}, 1)
+	fork5 := make(chan struct{}, 1)
 
-	go fork(0, ch1)
-	go fork(1, ch2)
-	go fork(2, ch3)
-	go fork(3, ch4)
-	go fork(4, ch5)
+	// Initially, each fork is available by sending a struct{} to the channel
+	fork1 <- struct{}{}
+	fork2 <- struct{}{}
+	fork3 <- struct{}{}
+	fork4 <- struct{}{}
+	fork5 <- struct{}{}
 
-	go philosipher(1, ch1, ch2)
-	go philosipher(2, ch2, ch3)
-	go philosipher(3, ch3, ch4)
-	go philosipher(4, ch4, ch5)
-	go philosipher(5, ch5, ch1)
-
+	// Start goroutines for philosophers
+	go philosipher(1, fork1, fork2)
+	go philosipher(2, fork2, fork3)
+	go philosipher(3, fork3, fork4)
+	go philosipher(4, fork4, fork5)
+	go philosipher(5, fork5, fork1)
 	for {
 		//change the number in "Status" to make them able to eat more than 3 times.
-		if Status(3) == 1 {
+		if Status(100000000) == 1 {
 			break
 		}
 	}
 
 }
 
-func philosipher(number int, ch1 chan int, ch2 chan int) {
+func philosipher(number int, leftFork, rightFork chan struct{}) {
 	for {
 		eating := false
+		//startTime := time.Now()
+		timeDuration := time.Duration(rand.Float32() * 10000)
 
-		startTime := time.Now()                 // Record the start time
-		timeoutDuration := 1 * time.Millisecond // 1 millisecond timeout
+		// Try to pick up the left fork within the timeout duration
+		select {
+		case <-leftFork:
+			// If successful, try to pick up the right fork within the timeout
+			select {
+			case <-rightFork:
+				// Got both forks, start eating
+				eating = true
+				TimesEaten[number-1]++
+				fmt.Println("Philosopher", number, "is eating...")
 
-		// Checks if philosipher can take fork 1 within the 1 millisec timeframe
-		for time.Since(startTime) < timeoutDuration {
-			ch1 <- number
-			if forkArry[number-1] == number { // Acquired the first fork
-				break
+				time.Sleep(timeDuration) // Simulate eating time
+
+				// Release both forks
+				leftFork <- struct{}{}
+				rightFork <- struct{}{}
+			default:
+				// Failed to pick up right fork, release left fork
+				leftFork <- struct{}{}
 			}
-
+		default:
+			// Timeout occurred, philosopher keeps thinking
 		}
 
-		if forkArry[number-1] == number { //tjek om array for opdateret fra fork??? Check if the philosipher has fork 1.
-			startTime = time.Now()
-			// Checks if philosipher can take fork 2 within the 1 millisec timeframe
-			for time.Since(startTime) < timeoutDuration {
-				ch2 <- number
-				if number != 5 {
-					if forkArry[number] == number {
-						eating = true
-						TimesEaten[number-1]++
-						break
-					}
-
-				} else {
-					if forkArry[0] == number {
-						eating = true
-						TimesEaten[number-1]++
-						break
-					}
-				}
-
-			}
-		} else { // If it has not gotten the first fork, then it will retry taking the fork again. (running the first for-loop again)
-			fmt.Println(number, "thinkin")
-			continue
-		}
-
-		if eating {
-			fmt.Println(number, "spiser, nam nam...")
-			ch1 <- number // returns both forks
-			ch2 <- number
-		} else {
-			fmt.Println(number, "thinkin")
-			ch1 <- number
-		}
-
-	}
-}
-
-func fork(number int, ch chan int) {
-	for {
-		index := <-ch
-		if forkArry[number] == 0 {
-			forkArry[number] = index
-		} else if forkArry[number] == index {
-			forkArry[number] = 0
+		if !eating {
+			fmt.Println("Philosopher", number, "is thinking...")
+			time.Sleep(timeDuration) // Simulate thinking time before retrying
 		}
 	}
 }
