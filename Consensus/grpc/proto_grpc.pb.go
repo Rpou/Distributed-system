@@ -19,101 +19,101 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ITUDatabase_GetStudents_FullMethodName = "/ITUDatabase/GetStudents"
+	Communcation_Request_FullMethodName = "/Communcation/Request"
 )
 
-// ITUDatabaseClient is the client API for ITUDatabase service.
+// CommuncationClient is the client API for Communcation service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ITUDatabaseClient interface {
-	GetStudents(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Students, error)
+type CommuncationClient interface {
+	Request(ctx context.Context, in *CriticalData, opts ...grpc.CallOption) (*Accept, error)
 }
 
-type iTUDatabaseClient struct {
+type communcationClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewITUDatabaseClient(cc grpc.ClientConnInterface) ITUDatabaseClient {
-	return &iTUDatabaseClient{cc}
+func NewCommuncationClient(cc grpc.ClientConnInterface) CommuncationClient {
+	return &communcationClient{cc}
 }
 
-func (c *iTUDatabaseClient) GetStudents(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Students, error) {
+func (c *communcationClient) Request(ctx context.Context, in *CriticalData, opts ...grpc.CallOption) (*Accept, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Students)
-	err := c.cc.Invoke(ctx, ITUDatabase_GetStudents_FullMethodName, in, out, cOpts...)
+	out := new(Accept)
+	err := c.cc.Invoke(ctx, Communcation_Request_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ITUDatabaseServer is the server API for ITUDatabase service.
-// All implementations must embed UnimplementedITUDatabaseServer
+// CommuncationServer is the server API for Communcation service.
+// All implementations must embed UnimplementedCommuncationServer
 // for forward compatibility.
-type ITUDatabaseServer interface {
-	GetStudents(context.Context, *Empty) (*Students, error)
-	mustEmbedUnimplementedITUDatabaseServer()
+type CommuncationServer interface {
+	Request(context.Context, *CriticalData) (*Accept, error)
+	mustEmbedUnimplementedCommuncationServer()
 }
 
-// UnimplementedITUDatabaseServer must be embedded to have
+// UnimplementedCommuncationServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedITUDatabaseServer struct{}
+type UnimplementedCommuncationServer struct{}
 
-func (UnimplementedITUDatabaseServer) GetStudents(context.Context, *Empty) (*Students, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStudents not implemented")
+func (UnimplementedCommuncationServer) Request(context.Context, *CriticalData) (*Accept, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Request not implemented")
 }
-func (UnimplementedITUDatabaseServer) mustEmbedUnimplementedITUDatabaseServer() {}
-func (UnimplementedITUDatabaseServer) testEmbeddedByValue()                     {}
+func (UnimplementedCommuncationServer) mustEmbedUnimplementedCommuncationServer() {}
+func (UnimplementedCommuncationServer) testEmbeddedByValue()                      {}
 
-// UnsafeITUDatabaseServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ITUDatabaseServer will
+// UnsafeCommuncationServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CommuncationServer will
 // result in compilation errors.
-type UnsafeITUDatabaseServer interface {
-	mustEmbedUnimplementedITUDatabaseServer()
+type UnsafeCommuncationServer interface {
+	mustEmbedUnimplementedCommuncationServer()
 }
 
-func RegisterITUDatabaseServer(s grpc.ServiceRegistrar, srv ITUDatabaseServer) {
-	// If the following call pancis, it indicates UnimplementedITUDatabaseServer was
+func RegisterCommuncationServer(s grpc.ServiceRegistrar, srv CommuncationServer) {
+	// If the following call pancis, it indicates UnimplementedCommuncationServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ITUDatabase_ServiceDesc, srv)
+	s.RegisterService(&Communcation_ServiceDesc, srv)
 }
 
-func _ITUDatabase_GetStudents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+func _Communcation_Request_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CriticalData)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ITUDatabaseServer).GetStudents(ctx, in)
+		return srv.(CommuncationServer).Request(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ITUDatabase_GetStudents_FullMethodName,
+		FullMethod: Communcation_Request_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ITUDatabaseServer).GetStudents(ctx, req.(*Empty))
+		return srv.(CommuncationServer).Request(ctx, req.(*CriticalData))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ITUDatabase_ServiceDesc is the grpc.ServiceDesc for ITUDatabase service.
+// Communcation_ServiceDesc is the grpc.ServiceDesc for Communcation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ITUDatabase_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ITUDatabase",
-	HandlerType: (*ITUDatabaseServer)(nil),
+var Communcation_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "Communcation",
+	HandlerType: (*CommuncationServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetStudents",
-			Handler:    _ITUDatabase_GetStudents_Handler,
+			MethodName: "Request",
+			Handler:    _Communcation_Request_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
