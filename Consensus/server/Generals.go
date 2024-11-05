@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -31,6 +32,9 @@ func main() {
 	go server.start_server(General1Add)
 	go server.start_server(General2Add)
 	go server.start_server(General3Add)
+	go server.connect(General1Add)
+	go server.connect(General2Add)
+	go server.connect(General3Add)
 
 	// Keep the main function alive to prevent exit
 	select {}
@@ -52,8 +56,13 @@ func (s *CommuncationServer) start_server(GeneralAddress string) {
 		log.Fatalf("Did not work")
 	}
 
+	err = grpcServer.Serve(listener)
+}
+
+func (s *CommuncationServer) connect(GeneralAddress string) {
 	for {
-		wantAccess := 0
+		time.Sleep(time.Second)
+		wantAccess := rand.Intn(3)
 		timestamp := rand.Intn(20)
 
 		if wantAccess == 0 && GeneralAddress == ":5053" {
@@ -95,5 +104,4 @@ func (s *CommuncationServer) start_server(GeneralAddress string) {
 		}
 
 	}
-	err = grpcServer.Serve(listener)
 }
