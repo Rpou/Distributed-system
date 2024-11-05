@@ -44,7 +44,7 @@ func main() {
 	go philosipher(5, fork5, fork1)
 	for {
 		//change the number in "Status" to make them able to eat more than 3 times.
-		if Status(3) == 1 {
+		if Status(1000000) == 1 {
 			break
 		}
 	}
@@ -86,9 +86,9 @@ func philosipher(number int, leftFork, rightFork chan struct{}) {
 
 func Status(limit int) int {
 	for {
-		time.Sleep(time.Duration(rand.Float64() * 1000))
-		for i := 0; i < 100; i++ {
-			//fmt.Println(TimesEaten)
+		time.Sleep(time.Duration(rand.Float64() * 100))
+		for i := 0; i < 10; i++ {
+			fmt.Println(TimesEaten)
 			if TimesEaten[0] > limit && TimesEaten[1] > limit && TimesEaten[2] > limit && TimesEaten[3] > limit && TimesEaten[4] > limit {
 				fmt.Println(TimesEaten)
 				return 1
