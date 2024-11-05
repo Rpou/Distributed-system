@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 
 	"google.golang.org/grpc"
@@ -13,10 +14,11 @@ import (
 
 type CommuncationServer struct {
 	proto.UnimplementedCommuncationServer
+	timestamp int64
 }
 
 func (s *CommuncationServer) Request(ctx context.Context, in *proto.CriticalData) (*proto.Accept, error) {
-	fmt.Print(in.CriticalData)
+	fmt.Println(in.CriticalData)
 	return &proto.Accept{Giveacces: true}, nil
 }
 
@@ -49,22 +51,49 @@ func (s *CommuncationServer) start_server(GeneralAddress string) {
 	if err != nil {
 		log.Fatalf("Did not work")
 	}
-	if GeneralAddress == "5053" {
-		conn, err := grpc.NewClient("localhost:5051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-		defer conn.Close()
-		if err != nil {
-			log.Fatalf("Did not work")
-		}
-		client := proto.NewCommuncationClient(conn)
 
-		accept, err := client.Request(context.Background(), &proto.CriticalData{
-			CriticalData: 2,
-			Time:         90,
-		})
-		if accept.Giveacces {
-			fmt.Println(".fasd")
+	for {
+		wantAccess := 0
+		timestamp := rand.Intn(20)
+
+		if wantAccess == 0 && GeneralAddress == ":5053" {
+			conn, err := grpc.NewClient("localhost:5051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn2, err := grpc.NewClient("localhost:5052", grpc.WithTransportCredentials(insecure.NewCredentials()))
+			defer conn.Close()
+			if err != nil {
+				log.Fatalf("Did not work")
+			}
+
+			client := proto.NewCommuncationClient(conn)
+
+			fmt.Println("connected first")
+
+			accept, err := client.Request(context.Background(), &proto.CriticalData{
+				CriticalData: 2,
+				Time:         int64(timestamp),
+			})
+
+			if accept.Giveacces {
+				fmt.Println("Access granted from client 1")
+			} else {
+				fmt.Println("No acces granted from client 1")
+			}
+
+			client = proto.NewCommuncationClient(conn2)
+
+			accept, err = client.Request(context.Background(), &proto.CriticalData{
+				CriticalData: 2,
+				Time:         int64(timestamp),
+			})
+
+			if accept.Giveacces {
+				fmt.Println("Access granted from client 2")
+			} else {
+				fmt.Println("No acces granted from client 2")
+			}
+
 		}
+
 	}
 	err = grpcServer.Serve(listener)
-
 }
