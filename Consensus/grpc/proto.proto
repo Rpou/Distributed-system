@@ -6,6 +6,10 @@ message CriticalData {
     int64 Time = 2;
 }
 
+message Release {
+    bool CriticalUsed = 1;
+}
+
 message Accept {
     bool giveacces = 1;
 }
