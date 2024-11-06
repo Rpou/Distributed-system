@@ -102,15 +102,17 @@ func (s *CommuncationServer) connect(peer1 string, peer2 string) {
 					CriticalDataNumber++
 					s.mu.Unlock()
 					fmt.Println("I am ", s.id, " Current number of Critical data: ", CriticalDataNumber, " timestamp: ", s.timestamp)
+					time.Sleep(time.Millisecond * 100)
 					break
 				} else {
 					fmt.Println("I am ", s.id, " I got no access granted ", s.timestamp)
-					time.Sleep(time.Millisecond)
+					time.Sleep(time.Millisecond * 100)
 					s.timestamp += 5
 				}
 			}
 		} else {
 			s.wantAccess = false
+			time.Sleep(time.Millisecond * 100)
 		}
 
 	}
