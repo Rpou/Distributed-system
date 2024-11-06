@@ -27,10 +27,9 @@ type CommuncationServer struct {
 }
 
 func (s *CommuncationServer) Request(ctx context.Context, in *proto.CriticalData) (*proto.Accept, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	// Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
+
 	return &proto.Accept{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess}, nil
 }
 
@@ -79,34 +78,35 @@ func (s *CommuncationServer) start_server(GeneralAddress string) {
 }
 
 func (s *CommuncationServer) connect(peer1 string, peer2 string) {
-
-	s.timestamp = 5
+	s.timestamp = s.id
 
 	for {
-		time.Sleep(time.Second)
+
 		wantAccessNumber := rand.Intn(3)
 
 		if wantAccessNumber != 1 {
-			s.wantAccess = true
 			for {
+				s.wantAccess = true
 				conn, err := grpc.NewClient(peer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
 				conn2, err := grpc.NewClient(peer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
 				defer conn.Close()
 				defer conn2.Close()
 				if err != nil {
-					log.Fatalf("Did not work")
+					log.Fatalf("Connection failed")
 				}
 
-				time.Sleep(time.Millisecond * 100)
 				accept1 := getPeerConnection(conn, int64(s.timestamp))
 				accept2 := getPeerConnection(conn2, int64(s.timestamp))
 				if accept1 && accept2 {
+					s.mu.Lock()
 					CriticalDataNumber++
+					s.mu.Unlock()
 					fmt.Println("I am ", s.id, " Current number of Critical data: ", CriticalDataNumber, " timestamp: ", s.timestamp)
 					break
 				} else {
 					fmt.Println("I am ", s.id, " I got no access granted ", s.timestamp)
-					s.timestamp++
+					time.Sleep(time.Millisecond)
+					s.timestamp += 5
 				}
 			}
 		} else {
@@ -125,7 +125,7 @@ func getPeerConnection(conn *grpc.ClientConn, timestamp int64) bool {
 	})
 
 	if err != nil {
-		log.Fatalf("Did not work")
+		log.Fatalf("Request failed")
 	}
 
 	return accept.Giveacces
