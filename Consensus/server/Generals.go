@@ -7,34 +7,53 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var (
+	CriticalDataNumber = 0
+)
+
 type CommuncationServer struct {
 	proto.UnimplementedCommuncationServer
-	timestamp int64
+	timestamp  int
+	id         int
+	mu         sync.Mutex
+	wantAccess bool
 }
 
 func (s *CommuncationServer) Request(ctx context.Context, in *proto.CriticalData) (*proto.Accept, error) {
-	fmt.Println(in.CriticalData)
-	return &proto.Accept{Giveacces: true}, nil
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
+	return &proto.Accept{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess}, nil
 }
 
 func main() {
-	server := &CommuncationServer{}
+	server1 := &CommuncationServer{id: 1}
+	server2 := &CommuncationServer{id: 2}
+	server3 := &CommuncationServer{id: 3}
+
 	General1Add := ":5051"
 	General2Add := ":5052"
 	General3Add := ":5053"
 
-	go server.start_server(General1Add)
-	go server.start_server(General2Add)
-	go server.start_server(General3Add)
-	go server.connect(General1Add)
-	go server.connect(General2Add)
-	go server.connect(General3Add)
+	General1FullAdd := "localhost:5051"
+	General2FullAdd := "localhost:5052"
+	General3FullAdd := "localhost:5053"
+
+	go server1.start_server(General1Add)
+	go server2.start_server(General2Add)
+	go server3.start_server(General3Add)
+
+	go server1.connect(General2FullAdd, General3FullAdd)
+	go server2.connect(General1FullAdd, General3FullAdd)
+	go server3.connect(General1FullAdd, General2FullAdd)
 
 	// Keep the main function alive to prevent exit
 	select {}
@@ -59,49 +78,56 @@ func (s *CommuncationServer) start_server(GeneralAddress string) {
 	err = grpcServer.Serve(listener)
 }
 
-func (s *CommuncationServer) connect(GeneralAddress string) {
+func (s *CommuncationServer) connect(peer1 string, peer2 string) {
+
+	s.timestamp = 5
+
 	for {
 		time.Sleep(time.Second)
-		wantAccess := rand.Intn(3)
-		timestamp := rand.Intn(20)
+		wantAccessNumber := rand.Intn(3)
 
-		if wantAccess == 0 && GeneralAddress == ":5053" {
-			conn, err := grpc.NewClient("localhost:5051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-			conn2, err := grpc.NewClient("localhost:5052", grpc.WithTransportCredentials(insecure.NewCredentials()))
-			defer conn.Close()
-			if err != nil {
-				log.Fatalf("Did not work")
+		if wantAccessNumber != 1 {
+			s.wantAccess = true
+			for {
+				conn, err := grpc.NewClient(peer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
+				conn2, err := grpc.NewClient(peer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
+				defer conn.Close()
+				defer conn2.Close()
+				if err != nil {
+					log.Fatalf("Did not work")
+				}
+
+				time.Sleep(time.Millisecond * 100)
+				accept1 := getPeerConnection(conn, int64(s.timestamp))
+				accept2 := getPeerConnection(conn2, int64(s.timestamp))
+				if accept1 && accept2 {
+					CriticalDataNumber++
+					fmt.Println("I am ", s.id, " Current number of Critical data: ", CriticalDataNumber, " timestamp: ", s.timestamp)
+					break
+				} else {
+					fmt.Println("I am ", s.id, " I got no access granted ", s.timestamp)
+					s.timestamp++
+				}
 			}
-
-			client := proto.NewCommuncationClient(conn)
-
-			fmt.Println("connected first")
-
-			accept, err := client.Request(context.Background(), &proto.CriticalData{
-				CriticalData: 2,
-				Time:         int64(timestamp),
-			})
-
-			if accept.Giveacces {
-				fmt.Println("Access granted from client 1")
-			} else {
-				fmt.Println("No acces granted from client 1")
-			}
-
-			client = proto.NewCommuncationClient(conn2)
-
-			accept, err = client.Request(context.Background(), &proto.CriticalData{
-				CriticalData: 2,
-				Time:         int64(timestamp),
-			})
-
-			if accept.Giveacces {
-				fmt.Println("Access granted from client 2")
-			} else {
-				fmt.Println("No acces granted from client 2")
-			}
-
+		} else {
+			s.wantAccess = false
 		}
 
 	}
+}
+
+func getPeerConnection(conn *grpc.ClientConn, timestamp int64) bool {
+	client := proto.NewCommuncationClient(conn)
+
+	accept, err := client.Request(context.Background(), &proto.CriticalData{
+		CriticalData: 2,
+		Time:         timestamp,
+	})
+
+	if err != nil {
+		log.Fatalf("Did not work")
+	}
+
+	return accept.Giveacces
+
 }
