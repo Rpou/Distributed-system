@@ -1,8 +1,8 @@
 syntax = "proto3";
 option go_package = "ITUServer/grpc/proto";
 
-message CriticalData {
-    int64 Critical_data = 1;
+message Bid {
+    int64 Bid = 1;
     int64 Time = 2;
 }
 
@@ -12,10 +12,12 @@ message Release {
 
 message Accept {
     bool giveacces = 1;
+    string status = 2;
 }
 
 message Empty {}
 
+
 service Communcation {
-    rpc Request (CriticalData) returns (Accept) {};
+    rpc Request (Bid) returns (Accept) {};
 }
