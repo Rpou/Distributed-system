@@ -1,0 +1,21 @@
+syntax = "proto3";
+option go_package = "ITUServer/grpc/proto";
+
+message CriticalData {
+    int64 Critical_data = 1;
+    int64 Time = 2;
+}
+
+message Release {
+    bool CriticalUsed = 1;
+}
+
+message Accept {
+    bool giveacces = 1;
+}
+
+message Empty {}
+
+service Communcation {
+    rpc Request (CriticalData) returns (Accept) {};
+}
