@@ -6,18 +6,24 @@ message Bid {
     int64 Time = 2;
 }
 
-message Release {
-    bool CriticalUsed = 1;
+message ClientToNodeBid {
+    int64 Bid = 1;
+    int64 NodeNumber = 2;
 }
 
-message Accept {
+message AcceptNodeRequest {
     bool giveacces = 1;
     string status = 2;
+}
+
+message AcceptClientRequest {
+    int64 AuctionBid = 1;
 }
 
 message Empty {}
 
 
 service Communcation {
-    rpc Request (Bid) returns (Accept) {};
+    rpc Request (Bid) returns (AcceptNodeRequest) {};
+    rpc ClientRequest (ClientToNodeBid) returns (AcceptClientRequest);
 }

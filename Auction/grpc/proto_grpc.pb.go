@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Communcation_Request_FullMethodName = "/Communcation/Request"
+	Communcation_Request_FullMethodName       = "/Communcation/Request"
+	Communcation_ClientRequest_FullMethodName = "/Communcation/ClientRequest"
 )
 
 // CommuncationClient is the client API for Communcation service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CommuncationClient interface {
-	Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*Accept, error)
+	Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*AcceptNodeRequest, error)
+	ClientRequest(ctx context.Context, in *ClientToNodeBid, opts ...grpc.CallOption) (*AcceptClientRequest, error)
 }
 
 type communcationClient struct {
@@ -37,10 +39,20 @@ func NewCommuncationClient(cc grpc.ClientConnInterface) CommuncationClient {
 	return &communcationClient{cc}
 }
 
-func (c *communcationClient) Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*Accept, error) {
+func (c *communcationClient) Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*AcceptNodeRequest, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Accept)
+	out := new(AcceptNodeRequest)
 	err := c.cc.Invoke(ctx, Communcation_Request_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *communcationClient) ClientRequest(ctx context.Context, in *ClientToNodeBid, opts ...grpc.CallOption) (*AcceptClientRequest, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AcceptClientRequest)
+	err := c.cc.Invoke(ctx, Communcation_ClientRequest_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +63,8 @@ func (c *communcationClient) Request(ctx context.Context, in *Bid, opts ...grpc.
 // All implementations must embed UnimplementedCommuncationServer
 // for forward compatibility.
 type CommuncationServer interface {
-	Request(context.Context, *Bid) (*Accept, error)
+	Request(context.Context, *Bid) (*AcceptNodeRequest, error)
+	ClientRequest(context.Context, *ClientToNodeBid) (*AcceptClientRequest, error)
 	mustEmbedUnimplementedCommuncationServer()
 }
 
@@ -62,8 +75,11 @@ type CommuncationServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCommuncationServer struct{}
 
-func (UnimplementedCommuncationServer) Request(context.Context, *Bid) (*Accept, error) {
+func (UnimplementedCommuncationServer) Request(context.Context, *Bid) (*AcceptNodeRequest, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Request not implemented")
+}
+func (UnimplementedCommuncationServer) ClientRequest(context.Context, *ClientToNodeBid) (*AcceptClientRequest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClientRequest not implemented")
 }
 func (UnimplementedCommuncationServer) mustEmbedUnimplementedCommuncationServer() {}
 func (UnimplementedCommuncationServer) testEmbeddedByValue()                      {}
@@ -104,6 +120,24 @@ func _Communcation_Request_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Communcation_ClientRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClientToNodeBid)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommuncationServer).ClientRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Communcation_ClientRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommuncationServer).ClientRequest(ctx, req.(*ClientToNodeBid))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Communcation_ServiceDesc is the grpc.ServiceDesc for Communcation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var Communcation_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Request",
 			Handler:    _Communcation_Request_Handler,
+		},
+		{
+			MethodName: "ClientRequest",
+			Handler:    _Communcation_ClientRequest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
