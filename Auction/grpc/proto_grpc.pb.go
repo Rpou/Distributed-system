@@ -26,7 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CommuncationClient interface {
-	Request(ctx context.Context, in *CriticalData, opts ...grpc.CallOption) (*Accept, error)
+	Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*Accept, error)
 }
 
 type communcationClient struct {
@@ -37,7 +37,7 @@ func NewCommuncationClient(cc grpc.ClientConnInterface) CommuncationClient {
 	return &communcationClient{cc}
 }
 
-func (c *communcationClient) Request(ctx context.Context, in *CriticalData, opts ...grpc.CallOption) (*Accept, error) {
+func (c *communcationClient) Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*Accept, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Accept)
 	err := c.cc.Invoke(ctx, Communcation_Request_FullMethodName, in, out, cOpts...)
@@ -51,7 +51,7 @@ func (c *communcationClient) Request(ctx context.Context, in *CriticalData, opts
 // All implementations must embed UnimplementedCommuncationServer
 // for forward compatibility.
 type CommuncationServer interface {
-	Request(context.Context, *CriticalData) (*Accept, error)
+	Request(context.Context, *Bid) (*Accept, error)
 	mustEmbedUnimplementedCommuncationServer()
 }
 
@@ -62,7 +62,7 @@ type CommuncationServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCommuncationServer struct{}
 
-func (UnimplementedCommuncationServer) Request(context.Context, *CriticalData) (*Accept, error) {
+func (UnimplementedCommuncationServer) Request(context.Context, *Bid) (*Accept, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Request not implemented")
 }
 func (UnimplementedCommuncationServer) mustEmbedUnimplementedCommuncationServer() {}
@@ -87,7 +87,7 @@ func RegisterCommuncationServer(s grpc.ServiceRegistrar, srv CommuncationServer)
 }
 
 func _Communcation_Request_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CriticalData)
+	in := new(Bid)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func _Communcation_Request_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: Communcation_Request_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CommuncationServer).Request(ctx, req.(*CriticalData))
+		return srv.(CommuncationServer).Request(ctx, req.(*Bid))
 	}
 	return interceptor(ctx, in, info, handler)
 }
