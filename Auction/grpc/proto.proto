@@ -2,12 +2,12 @@ syntax = "proto3";
 option go_package = "ITUServer/grpc/proto";
 
 message Bid {
-    int64 Bid = 1;
-    int64 Time = 2;
+    int64 bid = 1;
+    int64 time = 2;
 }
 
 message ClientToNodeBid {
-    int64 Bid = 1;
+    int64 bid = 1;
 }
 
 message AcceptNodeRequest {
@@ -16,7 +16,7 @@ message AcceptNodeRequest {
 }
 
 message AcceptClientRequest {
-    int64 AuctionBid = 1;
+    int64 auctionBid = 1;
 }
 
 message Empty {}

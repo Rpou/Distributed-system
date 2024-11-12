@@ -17,15 +17,11 @@ func main() {
 
 	client := connectToNode(randomNodeNr)
 
-	
-
 	client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
 		Bid: 100,
 	})
 
 	fmt.Print(client)
-
-	client.getbid
 
 }
 
