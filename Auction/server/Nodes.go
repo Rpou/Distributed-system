@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
 	"sync"
 	"time"
@@ -15,16 +14,18 @@ import (
 )
 
 var (
-	CurrentHighestBid = 0
-	TimeLeftOfAuction = 100;
+	currentHighestBid = 0
+	timeLeftOfAuction = 100
 )
 
 type CommuncationServer struct {
 	proto.UnimplementedCommuncationServer
-	timestamp  int
-	id         int
-	mu         sync.Mutex
-	wantAccess bool
+	timestamp    int
+	id           int
+	otherServer1 string
+	otherServer2 string
+	mu           sync.Mutex
+	wantAccess   bool
 }
 
 func (s *CommuncationServer) Request(ctx context.Context, in *proto.CriticalData) (*proto.Accept, error) {
@@ -34,26 +35,51 @@ func (s *CommuncationServer) Request(ctx context.Context, in *proto.CriticalData
 	return &proto.Accept{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess}, nil
 }
 
+func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
+	for {
+		conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn2, err := grpc.NewClient(s.otherServer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		defer conn.Close()
+		defer conn2.Close()
+		if err != nil {
+			log.Fatalf("Connection failed")
+		}
+
+		accept1 := getPeerConnection(conn, int64(s.timestamp))
+		accept2 := getPeerConnection(conn2, int64(s.timestamp))
+		if accept1 && accept2 {
+			if in.Bid > int64(currentHighestBid) {
+				fmt.Println("I am node ", s.id, " Current new price: ", currentHighestBid, " timestamp: ", s.timestamp)
+				currentHighestBid = in.bid
+			}
+			return &proto.AcceptClientRequest{
+				auctionBid: currentHighestBid,
+			}, nil
+
+		} else {
+			fmt.Println("I am ", s.id, " I got no access granted ", s.timestamp)
+			time.Sleep(time.Millisecond * 100)
+			s.timestamp += 5
+		}
+	}
+}
+
 func main() {
-	server1 := &CommuncationServer{id: 1}
-	server2 := &CommuncationServer{id: 2}
-	server3 := &CommuncationServer{id: 3}
+	server1 := &CommuncationServer{id: 1, otherServer1: "localhost:5052", otherServer2: "localhost:5053"}
+	server2 := &CommuncationServer{id: 2, otherServer1: "localhost:5051", otherServer2: "localhost:5053"}
+	server3 := &CommuncationServer{id: 3, otherServer1: "localhost:5051", otherServer2: "localhost:5052"}
 
 	Node1Add := ":5051"
 	Node2Add := ":5052"
 	Node3Add := ":5053"
 
-	Node1FullAdd := "localhost:5051"
-	Node2FullAdd := "localhost:5052"
-	Node3FullAdd := "localhost:5053"
-
 	go server1.start_server(Node1Add)
 	go server2.start_server(Node2Add)
 	go server3.start_server(Node3Add)
 
-	go server1.auction(Node2FullAdd, Node3FullAdd)
-	go server2.auction(Node1FullAdd, Node3FullAdd)
-	go server3.auction(Node1FullAdd, Node2FullAdd)
+	go server1.auction()
+	go server2.auction()
+	go server3.auction()
 
 	// Keep the main function alive to prevent exit
 	select {}
@@ -78,49 +104,15 @@ func (s *CommuncationServer) start_server(NodeAddress string) {
 	err = grpcServer.Serve(listener)
 }
 
-func (s *CommuncationServer) auction(peer1 string, peer2 string) {
-	s.timestamp = s.id
-
+func (s *CommuncationServer) auction() {
 	for {
-	
-		if true { //bid has been made
-			for {
-				conn, err := grpc.NewClient(peer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
-				conn2, err := grpc.NewClient(peer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
-				defer conn.Close()
-				defer conn2.Close()
-				if err != nil {
-					log.Fatalf("Connection failed")
-				}
+		time.Sleep(time.Millisecond * 100)
 
-				accept1 := getPeerConnection(conn, int64(s.timestamp))
-				accept2 := getPeerConnection(conn2, int64(s.timestamp))
-				if accept1 && accept2 {
-					if  true { //bid is higher than current
-						fmt.Println("I am node ", s.id, " Current new price: ", , " timestamp: ", s.timestamp)
-						
-					}  
-					//send current highest back
-
-					time.Sleep(time.Millisecond * 100)
-					break
-				} else {
-					fmt.Println("I am ", s.id, " I got no access granted ", s.timestamp)
-					time.Sleep(time.Millisecond * 100)
-					s.timestamp += 5
-				}
-			}
-		} else {
-			time.Sleep(time.Millisecond * 100)
-		}
-
-		if TimeLeftOfAuction < 0 {
-			break;
+		if timeLeftOfAuction < 0 {
+			break
 		}
 
 	}
-
-	//Returner endelig pris til client 
 }
 
 func getPeerConnection(conn *grpc.ClientConn, timestamp int64) bool {
