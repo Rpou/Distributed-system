@@ -13,15 +13,32 @@ import (
 
 func main() {
 
-	randomNodeNr := rand.Intn(3)
+	myBid := 100
 
-	client := connectToNode(randomNodeNr)
+	for{
+		//connects to random client:
+		randomNodeNr := rand.Intn(3)
+		client := connectToNode(randomNodeNr)
 
-	client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
-		Bid: 100,
-	})
+		// sends own bid, and recives auctions highest bid:
+		highestbid, err := client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
+			Bid: int64(myBid),
+		})
+		if err != nil {
 
-	fmt.Print(client)
+		}
+
+		if highestbid.AuctionBid == int64(myBid){
+
+			fmt.Println("I currently have the highest bid at:",myBid)
+
+		} else {
+
+			randomAddedCash := rand.Intn(100) + 1
+			myBid = myBid + randomAddedCash
+
+		}
+	}
 
 }
 
@@ -31,24 +48,24 @@ func connectToNode(nodeNumber int) proto.CommuncationClient {
 	Node2FullAdd := "localhost:5052"
 	Node3FullAdd := "localhost:5053"
 
-	var client proto.CommuncationClient
+	var node proto.CommuncationClient
 	var err error
 	var conn *grpc.ClientConn
 
 	if nodeNumber == 0 {
 
 		conn, err = grpc.NewClient(Node1FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		client = proto.NewCommuncationClient(conn)
+		node = proto.NewCommuncationClient(conn)
 
 	} else if nodeNumber == 1 {
 
 		conn, err = grpc.NewClient(Node2FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		client = proto.NewCommuncationClient(conn)
+		node = proto.NewCommuncationClient(conn)
 
 	} else {
 
 		conn, err = grpc.NewClient(Node3FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		client = proto.NewCommuncationClient(conn)
+		node = proto.NewCommuncationClient(conn)
 	}
 
 	if err != nil {
