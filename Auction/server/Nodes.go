@@ -27,6 +27,7 @@ type CommuncationServer struct {
 	mu           sync.Mutex
 	wantAccess   bool
 	status       string
+	mutex		 sync.Mutex
 }
 
 func (s CommuncationServer) Request(ctx context.Context, in *proto.RequestAccess) (*proto.AcceptNodeRequest, error) {
@@ -37,8 +38,12 @@ func (s CommuncationServer) Request(ctx context.Context, in *proto.RequestAccess
 }
 
 func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	fmt.Println(s.id, "started asking for access")
+
 	for {
-		fmt.Println(s.id, "started asking for access")
+		
 		s.wantAccess = true
 		conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		conn2, err := grpc.NewClient(s.otherServer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
