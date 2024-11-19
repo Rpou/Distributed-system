@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CommuncationClient interface {
-	Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*AcceptNodeRequest, error)
+	Request(ctx context.Context, in *RequestAccess, opts ...grpc.CallOption) (*AcceptNodeRequest, error)
 	ClientRequest(ctx context.Context, in *ClientToNodeBid, opts ...grpc.CallOption) (*AcceptClientRequest, error)
 }
 
@@ -39,7 +39,7 @@ func NewCommuncationClient(cc grpc.ClientConnInterface) CommuncationClient {
 	return &communcationClient{cc}
 }
 
-func (c *communcationClient) Request(ctx context.Context, in *Bid, opts ...grpc.CallOption) (*AcceptNodeRequest, error) {
+func (c *communcationClient) Request(ctx context.Context, in *RequestAccess, opts ...grpc.CallOption) (*AcceptNodeRequest, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AcceptNodeRequest)
 	err := c.cc.Invoke(ctx, Communcation_Request_FullMethodName, in, out, cOpts...)
@@ -63,7 +63,7 @@ func (c *communcationClient) ClientRequest(ctx context.Context, in *ClientToNode
 // All implementations must embed UnimplementedCommuncationServer
 // for forward compatibility.
 type CommuncationServer interface {
-	Request(context.Context, *Bid) (*AcceptNodeRequest, error)
+	Request(context.Context, *RequestAccess) (*AcceptNodeRequest, error)
 	ClientRequest(context.Context, *ClientToNodeBid) (*AcceptClientRequest, error)
 	mustEmbedUnimplementedCommuncationServer()
 }
@@ -75,7 +75,7 @@ type CommuncationServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCommuncationServer struct{}
 
-func (UnimplementedCommuncationServer) Request(context.Context, *Bid) (*AcceptNodeRequest, error) {
+func (UnimplementedCommuncationServer) Request(context.Context, *RequestAccess) (*AcceptNodeRequest, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Request not implemented")
 }
 func (UnimplementedCommuncationServer) ClientRequest(context.Context, *ClientToNodeBid) (*AcceptClientRequest, error) {
@@ -103,7 +103,7 @@ func RegisterCommuncationServer(s grpc.ServiceRegistrar, srv CommuncationServer)
 }
 
 func _Communcation_Request_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Bid)
+	in := new(RequestAccess)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func _Communcation_Request_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: Communcation_Request_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CommuncationServer).Request(ctx, req.(*Bid))
+		return srv.(CommuncationServer).Request(ctx, req.(*RequestAccess))
 	}
 	return interceptor(ctx, in, info, handler)
 }

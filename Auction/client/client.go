@@ -13,7 +13,15 @@ import (
 
 func main() {
 
-	myBid := 100
+	randomBidNr := rand.Intn(100)
+	go client(randomBidNr)
+
+	randomBidNr = rand.Intn(100)
+	go client(randomBidNr)
+
+}
+
+func client(myBid int){
 
 	for{
 		//connects to random client:
@@ -36,10 +44,8 @@ func main() {
 
 			randomAddedCash := rand.Intn(100) + 1
 			myBid = myBid + randomAddedCash
-
 		}
 	}
-
 }
 
 func connectToNode(nodeNumber int) proto.CommuncationClient {

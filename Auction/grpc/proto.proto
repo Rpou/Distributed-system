@@ -23,6 +23,6 @@ message Empty {}
 
 
 service Communcation {
-    rpc Request (Bid) returns (AcceptNodeRequest) {};
+    rpc Request (RequestAccess) returns (AcceptNodeRequest) {};
     rpc ClientRequest (ClientToNodeBid) returns (AcceptClientRequest);
 }
