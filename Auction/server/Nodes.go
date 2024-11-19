@@ -28,13 +28,6 @@ type CommuncationServer struct {
 	wantAccess   bool
 }
 
-func (s *CommuncationServer) Request(ctx context.Context, in *proto.CriticalData) (*proto.Accept, error) {
-
-	// Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
-
-	return &proto.Accept{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess}, nil
-}
-
 func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
 	for {
 		conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -50,10 +43,10 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 		if accept1 && accept2 {
 			if in.Bid > int64(currentHighestBid) {
 				fmt.Println("I am node ", s.id, " Current new price: ", currentHighestBid, " timestamp: ", s.timestamp)
-				currentHighestBid = in.bid
+				currentHighestBid = int(in.Bid)
 			}
 			return &proto.AcceptClientRequest{
-				auctionBid: currentHighestBid,
+				AuctionBid: int64(currentHighestBid),
 			}, nil
 
 		} else {
@@ -109,6 +102,7 @@ func (s *CommuncationServer) auction() {
 		time.Sleep(time.Millisecond * 100)
 
 		if timeLeftOfAuction < 0 {
+			fmt.Println("Auction should be over")
 			break
 		}
 
