@@ -17,6 +17,7 @@ message AcceptNodeRequest {
 
 message AcceptClientRequest {
     int64 auctionBid = 1;
+    bool giveacces = 2;
 }
 
 message Empty {}
