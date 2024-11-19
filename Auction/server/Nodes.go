@@ -54,12 +54,16 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 			if in.Bid > int64(currentHighestBid) {
 				currentHighestBid = int(in.Bid)
 				fmt.Println("I am node ", s.id, " Current new price: ", currentHighestBid, " timestamp: ", s.timestamp)
+				return &proto.AcceptClientRequest{
+					AuctionBid: int64(currentHighestBid),
+					Giveacces:  true,
+				}, nil
 			}
 			fmt.Println(s.id, "finished asking for access")
 			s.wantAccess = false
 			return &proto.AcceptClientRequest{
 				AuctionBid: int64(currentHighestBid),
-				Giveacces:  true,
+				Giveacces:  false,
 			}, nil
 
 		} else {
