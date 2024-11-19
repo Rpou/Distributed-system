@@ -34,7 +34,9 @@ func client(myBid int) {
 		// see auction status
 		auctionStatus, errorr := client.AuctionStatus(context.Background(), &proto.Empty{})
 		if errorr != nil {
-
+			fmt.Printf("Error fetching auction status from node %d: %v\n", randomNodeNr, errorr)
+			time.Sleep(time.Millisecond * 100) // Retry with a different node
+			continue
 		}
 
 		if auctionStatus.InProgress {
@@ -43,7 +45,9 @@ func client(myBid int) {
 				Bid: int64(myBid),
 			})
 			if err != nil {
-
+				fmt.Printf("Error sending bid to node %d: %v\n", randomNodeNr, err)
+				time.Sleep(time.Millisecond * 100) // Retry with a different node
+				continue
 			}
 
 			if highestbid.AuctionBid == int64(myBid) && highestbid.Giveacces {
@@ -95,13 +99,13 @@ func connectToNode(nodeNumber int) proto.CommuncationClient {
 		}
 		//if no errors, return node. If there is error it tries again
 		if err == nil {
-			break
+			fmt.Printf("Connected to node %d\n", nodeNumber)
+			if conn != nil {
+				return node
+			}
 		}
-		if err != nil {
-			fmt.Println("Node crash. I am:", nodeNumber)
-		}
-		nodeNumber = rand.Intn(3)
-	}
 
-	return node
+		fmt.Printf("Failed to connect to node %d: %v\n", nodeNumber, err)
+		nodeNumber = rand.Intn(3) // Retry with a different node
+	}
 }

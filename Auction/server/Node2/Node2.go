@@ -1,4 +1,4 @@
-package main2
+package main
 
 import (
 	proto "ITUServer/grpc"
@@ -13,32 +13,29 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var (
-	currentHighestBid = 0
-	timeLeftOfAuction = 1000
-)
-
 type CommuncationServer struct {
 	proto.UnimplementedCommuncationServer
-	timestamp    int
-	id           int
-	otherServer1 string
-	otherServer2 string
-	mu           sync.Mutex
-	wantAccess   bool
-	status       string
-	mutex        sync.Mutex
+	timestamp         int
+	id                int
+	otherServer1      string
+	otherServer2      string
+	mu                sync.Mutex
+	wantAccess        bool
+	status            string
+	mutex             sync.Mutex
+	currentHighestBid int64
+	timeLeftOfAuction int64
 }
 
 func (s *CommuncationServer) AuctionStatus(ctx context.Context, in *proto.Empty) (*proto.AuctionProgress, error) {
-	return &proto.AuctionProgress{InProgress: timeLeftOfAuction > 0, HighestBid: int64(currentHighestBid)}, nil
+	return &proto.AuctionProgress{InProgress: s.timeLeftOfAuction > 0, HighestBid: int64(s.currentHighestBid)}, nil
 }
 
 func (s *CommuncationServer) Request(ctx context.Context, in *proto.RequestAccess) (*proto.AcceptNodeRequest, error) {
 
 	// Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
 
-	return &proto.AcceptNodeRequest{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess, Status: s.status}, nil
+	return &proto.AcceptNodeRequest{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess, MyBid: int64(s.currentHighestBid), TimeLeftOfAuction: int64(s.timeLeftOfAuction)}, nil
 }
 
 func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
@@ -59,34 +56,38 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 
 		accept1 := getPeerConnection(conn, int64(s.timestamp))
 		accept2 := getPeerConnection(conn2, int64(s.timestamp))
-		if accept1 && accept2 {
-			if in.Bid > int64(currentHighestBid) {
-				currentHighestBid = int(in.Bid)
-				fmt.Println("I am node ", s.id, " Current new price: ", currentHighestBid, " timestamp: ", s.timestamp)
+
+		if accept1.Giveacces && accept2.Giveacces {
+
+			highestBid := max(s.currentHighestBid, accept1.MyBid, accept2.MyBid)
+			s.currentHighestBid = highestBid
+
+			if in.Bid > s.currentHighestBid {
+				s.currentHighestBid = in.Bid
+				fmt.Println("I am node ", s.id, " Current new price: ", s.currentHighestBid, " timestamp: ", s.timestamp)
+				s.wantAccess = false
 				return &proto.AcceptClientRequest{
-					AuctionBid: int64(currentHighestBid),
+					AuctionBid: s.currentHighestBid,
 					Giveacces:  true,
 				}, nil
 			}
 			fmt.Println(s.id, "finished asking for access")
 			s.wantAccess = false
 			return &proto.AcceptClientRequest{
-				AuctionBid: int64(currentHighestBid),
+				AuctionBid: s.currentHighestBid,
 				Giveacces:  false,
 			}, nil
 
 		} else {
 			fmt.Println("I am ", s.id, " I got no access granted ", s.timestamp)
-			time.Sleep(time.Millisecond * 100)
+			time.Sleep(time.Millisecond * 500)
 			s.timestamp += 5
 		}
 	}
 }
 
 func main() {
-
-	server2 := &CommuncationServer{id: 2, otherServer1: "localhost:5051", otherServer2: "localhost:5053", timestamp: 2}
-
+	server2 := &CommuncationServer{id: 2, otherServer1: "localhost:5051", otherServer2: "localhost:5053", timestamp: 2, timeLeftOfAuction: 1000}
 
 	Node2Add := ":5052"
 
@@ -123,15 +124,15 @@ func (s *CommuncationServer) auction() {
 	for {
 		time.Sleep(time.Millisecond * 100)
 		//timeLeftOfAuction--
-		if timeLeftOfAuction < 0 {
+		if s.timeLeftOfAuction < 0 {
 			fmt.Println("Auction should be over")
-			fmt.Println("Highest bid was", currentHighestBid)
+			fmt.Println("Highest bid was", s.currentHighestBid)
 			break
 		}
 	}
 }
 
-func getPeerConnection(conn *grpc.ClientConn, timestamp int64) bool {
+func getPeerConnection(conn *grpc.ClientConn, timestamp int64) *proto.AcceptNodeRequest {
 	client := proto.NewCommuncationClient(conn)
 
 	accept, err := client.Request(context.Background(), &proto.RequestAccess{
@@ -139,15 +140,14 @@ func getPeerConnection(conn *grpc.ClientConn, timestamp int64) bool {
 	})
 
 	if err != nil {
-		log.Fatalf("Request failed")
-		return true
+		fmt.Println("Request failed")
+		return &proto.AcceptNodeRequest{
+			Giveacces:         true,
+			MyBid:             0,
+			TimeLeftOfAuction: 1000,
+		}
 	}
 
-	if accept.Status == "up" {
-		return accept.Giveacces
-	} else {
-		fmt.Println("why would server be down??")
-		return accept.Giveacces
-	}
+	return accept
 
 }
