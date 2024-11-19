@@ -28,6 +28,8 @@ func client(myBid int){
 		randomNodeNr := rand.Intn(3)
 		client := connectToNode(randomNodeNr)
 
+		client.Result(context.Background(), &proto.Empty{})
+
 		// sends own bid, and recives auctions highest bid:
 		highestbid, err := client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
 			Bid: int64(myBid),
