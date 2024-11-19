@@ -26,17 +26,19 @@ type CommuncationServer struct {
 	otherServer2 string
 	mu           sync.Mutex
 	wantAccess   bool
+	status       string
 }
 
-func (s CommuncationServer) Request(ctx context.Context, inproto.CriticalData) (*proto.Accept, error) {
+func (s CommuncationServer) Request(ctx context.Context, in *proto.RequestAccess) (*proto.AcceptNodeRequest, error) {
 
-    // Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
+	// Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
 
-    return &proto.Accept{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess}, nil
+	return &proto.AcceptNodeRequest{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess, Status: s.status}, nil
 }
 
 func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
 	for {
+		s.wantAccess = true
 		conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		conn2, err := grpc.NewClient(s.otherServer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		defer conn.Close()
@@ -52,6 +54,7 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 				fmt.Println("I am node ", s.id, " Current new price: ", currentHighestBid, " timestamp: ", s.timestamp)
 				currentHighestBid = int(in.Bid)
 			}
+			s.wantAccess = false
 			return &proto.AcceptClientRequest{
 				AuctionBid: int64(currentHighestBid),
 			}, nil
@@ -96,9 +99,11 @@ func (s *CommuncationServer) start_server(NodeAddress string) {
 	proto.RegisterCommuncationServer(grpcServer, s)
 
 	fmt.Println("opened Node")
+	s.status = "up"
 
 	if err != nil {
 		log.Fatalf("Did not work")
+		s.status = "down"
 	}
 
 	err = grpcServer.Serve(listener)
@@ -106,6 +111,7 @@ func (s *CommuncationServer) start_server(NodeAddress string) {
 
 func (s *CommuncationServer) auction() {
 	for {
+		s.timestamp += 5
 		time.Sleep(time.Millisecond * 100)
 
 		if timeLeftOfAuction < 0 {
@@ -118,15 +124,19 @@ func (s *CommuncationServer) auction() {
 func getPeerConnection(conn *grpc.ClientConn, timestamp int64) bool {
 	client := proto.NewCommuncationClient(conn)
 
-	accept, err := client.Request(context.Background(), &proto.CriticalData{
-		CriticalData: 2,
-		Time:         timestamp,
+	accept, err := client.Request(context.Background(), &proto.RequestAccess{
+		Time: timestamp,
 	})
 
 	if err != nil {
 		log.Fatalf("Request failed")
 	}
 
-	return accept.Giveacces
+	if accept.Status == "up" {
+		return accept.Giveacces
+	} else {
+		fmt.Println("why would server be down??")
+		return accept.Giveacces
+	}
 
 }
