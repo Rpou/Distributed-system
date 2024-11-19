@@ -29,7 +29,11 @@ type CommuncationServer struct {
 	status       string
 }
 
-func (s CommuncationServer) Request(ctx context.Context, in *proto.RequestAccess) (*proto.AcceptNodeRequest, error) {
+func (s *CommuncationServer) AuctionStatus(ctx context.Context, in *proto.Empty) (*proto.AuctionProgress, error) {
+	return &proto.AuctionProgress{InProgress: timeLeftOfAuction > 0, HighestBid: int64(currentHighestBid)}, nil
+}
+
+func (s *CommuncationServer) Request(ctx context.Context, in *proto.RequestAccess) (*proto.AcceptNodeRequest, error) {
 
 	// Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
 
