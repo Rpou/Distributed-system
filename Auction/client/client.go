@@ -72,5 +72,5 @@ func connectToNode(nodeNumber int) proto.CommuncationClient {
 
 	}
 
-	return client
+	return node
 }
