@@ -118,7 +118,6 @@ func (s *CommuncationServer) auction() {
 			fmt.Println("Auction should be over")
 			break
 		}
-
 	}
 }
 
