@@ -84,20 +84,13 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 }
 
 func main() {
-	server1 := &CommuncationServer{id: 1, otherServer1: "localhost:5052", otherServer2: "localhost:5053", timestamp: 1}
-	server2 := &CommuncationServer{id: 2, otherServer1: "localhost:5051", otherServer2: "localhost:5053", timestamp: 2}
+
 	server3 := &CommuncationServer{id: 3, otherServer1: "localhost:5051", otherServer2: "localhost:5052", timestamp: 3}
 
-	Node1Add := ":5051"
-	Node2Add := ":5052"
 	Node3Add := ":5053"
 
-	go server1.start_server(Node1Add)
-	go server2.start_server(Node2Add)
 	go server3.start_server(Node3Add)
 
-	go server1.auction()
-	go server2.auction()
 	go server3.auction()
 
 	// Keep the main function alive to prevent exit

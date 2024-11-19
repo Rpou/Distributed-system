@@ -76,24 +76,31 @@ func connectToNode(nodeNumber int) proto.CommuncationClient {
 	var err error
 	var conn *grpc.ClientConn
 
-	if nodeNumber == 0 {
+	for {
 
-		conn, err = grpc.NewClient(Node1FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		node = proto.NewCommuncationClient(conn)
+		if nodeNumber == 0 {
 
-	} else if nodeNumber == 1 {
+			conn, err = grpc.NewClient(Node1FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			node = proto.NewCommuncationClient(conn)
 
-		conn, err = grpc.NewClient(Node2FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		node = proto.NewCommuncationClient(conn)
+		} else if nodeNumber == 1 {
 
-	} else {
+			conn, err = grpc.NewClient(Node2FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			node = proto.NewCommuncationClient(conn)
 
-		conn, err = grpc.NewClient(Node3FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		node = proto.NewCommuncationClient(conn)
-	}
+		} else {
+			conn, err = grpc.NewClient(Node3FullAdd, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			node = proto.NewCommuncationClient(conn)
 
-	if err != nil {
-
+		}
+		//if no errors, return node. If there is error it tries again
+		if err == nil {
+			break
+		}
+		if err != nil {
+			fmt.Println("Node crash. I am:", nodeNumber)
+		}
+		nodeNumber = rand.Intn(3)
 	}
 
 	return node
