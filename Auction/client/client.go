@@ -31,33 +31,33 @@ func client(myBid int) {
 		client := connectToNode(randomNodeNr)
 
 		// see auction status
-		auctionStatus, error := client.AuctionStatus(context.Background(), &proto.Empty{})
-		if error != nil {
+		//auctionStatus, error := client.AuctionStatus(context.Background(), &proto.Empty{})
+		//if error != nil {
+
+		//}
+
+		//if auctionStatus.InProgress {
+		// sends own bid, and recives auctions highest bid:
+		highestbid, err := client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
+			Bid: int64(myBid),
+		})
+		if err != nil {
 
 		}
 
-		if auctionStatus.InProgress {
-			// sends own bid, and recives auctions highest bid:
-			highestbid, err := client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
-				Bid: int64(myBid),
-			})
-			if err != nil {
+		if highestbid.AuctionBid == int64(myBid) && highestbid.Giveacces {
 
-			}
+			fmt.Println("I currently have the highest bid at:", myBid)
 
-			if highestbid.AuctionBid == int64(myBid) && highestbid.Giveacces {
-
-				fmt.Println("I currently have the highest bid at:", myBid)
-
-			} else {
-
-				randomAddedCash := rand.Intn(100) + 1
-				myBid = myBid + randomAddedCash
-			}
 		} else {
-			fmt.Println(auctionStatus.HighestBid)
-			break
+
+			randomAddedCash := rand.Intn(100) + 1
+			myBid = myBid + randomAddedCash
 		}
+		//} else {
+		//	fmt.Println(auctionStatus.HighestBid)
+		//	break
+		//}
 
 	}
 }
