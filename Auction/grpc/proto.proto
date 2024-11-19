@@ -19,10 +19,15 @@ message AcceptClientRequest {
     bool giveacces = 2;
 }
 
+message AuctionResult {
+    int64 bid = 1;
+}
+
 message Empty {}
 
 
 service Communcation {
     rpc Request (RequestAccess) returns (AcceptNodeRequest) {};
     rpc ClientRequest (ClientToNodeBid) returns (AcceptClientRequest);
+    rpc Result (Empty) returns (AuctionResult);
 }
