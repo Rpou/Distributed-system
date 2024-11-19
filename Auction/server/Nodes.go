@@ -15,7 +15,7 @@ import (
 
 var (
 	currentHighestBid = 0
-	timeLeftOfAuction = 100
+	timeLeftOfAuction = 1000
 )
 
 type CommuncationServer struct {
@@ -38,6 +38,7 @@ func (s CommuncationServer) Request(ctx context.Context, in *proto.RequestAccess
 
 func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
 	for {
+		fmt.Println(s.id, "started asking for access")
 		s.wantAccess = true
 		conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		conn2, err := grpc.NewClient(s.otherServer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -51,12 +52,14 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 		accept2 := getPeerConnection(conn2, int64(s.timestamp))
 		if accept1 && accept2 {
 			if in.Bid > int64(currentHighestBid) {
-				fmt.Println("I am node ", s.id, " Current new price: ", currentHighestBid, " timestamp: ", s.timestamp)
 				currentHighestBid = int(in.Bid)
+				fmt.Println("I am node ", s.id, " Current new price: ", currentHighestBid, " timestamp: ", s.timestamp)
 			}
+			fmt.Println(s.id, "finished asking for access")
 			s.wantAccess = false
 			return &proto.AcceptClientRequest{
 				AuctionBid: int64(currentHighestBid),
+				Giveacces:  true,
 			}, nil
 
 		} else {
@@ -68,9 +71,9 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 }
 
 func main() {
-	server1 := &CommuncationServer{id: 1, otherServer1: "localhost:5052", otherServer2: "localhost:5053"}
-	server2 := &CommuncationServer{id: 2, otherServer1: "localhost:5051", otherServer2: "localhost:5053"}
-	server3 := &CommuncationServer{id: 3, otherServer1: "localhost:5051", otherServer2: "localhost:5052"}
+	server1 := &CommuncationServer{id: 1, otherServer1: "localhost:5052", otherServer2: "localhost:5053", timestamp: 1}
+	server2 := &CommuncationServer{id: 2, otherServer1: "localhost:5051", otherServer2: "localhost:5053", timestamp: 2}
+	server3 := &CommuncationServer{id: 3, otherServer1: "localhost:5051", otherServer2: "localhost:5052", timestamp: 3}
 
 	Node1Add := ":5051"
 	Node2Add := ":5052"
@@ -111,7 +114,6 @@ func (s *CommuncationServer) start_server(NodeAddress string) {
 
 func (s *CommuncationServer) auction() {
 	for {
-		s.timestamp += 5
 		time.Sleep(time.Millisecond * 100)
 
 		if timeLeftOfAuction < 0 {

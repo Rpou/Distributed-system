@@ -51,7 +51,7 @@ func client(myBid int) {
 			fmt.Println("I currently have the highest bid at:", myBid)
 
 		} else {
-
+			fmt.Println("I got rejected with:", myBid)
 			randomAddedCash := rand.Intn(100) + 1
 			myBid = myBid + randomAddedCash
 		}
