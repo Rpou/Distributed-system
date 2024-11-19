@@ -4,6 +4,7 @@ import (
 	proto "ITUServer/grpc"
 	"context"
 	"fmt"
+	"time"
 
 	"math/rand"
 
@@ -58,6 +59,8 @@ func client(myBid int) {
 		//	fmt.Println(auctionStatus.HighestBid)
 		//	break
 		//}
+
+		time.Sleep(time.Millisecond * 100)
 
 	}
 }
