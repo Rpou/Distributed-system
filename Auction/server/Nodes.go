@@ -28,6 +28,13 @@ type CommuncationServer struct {
 	wantAccess   bool
 }
 
+func (s CommuncationServer) Request(ctx context.Context, inproto.CriticalData) (*proto.Accept, error) {
+
+    // Accept if the other timestamp is smaller than this clients timestamp, or if this client does not want access
+
+    return &proto.Accept{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess}, nil
+}
+
 func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
 	for {
 		conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
