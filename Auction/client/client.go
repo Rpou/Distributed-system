@@ -19,6 +19,8 @@ func main() {
 	randomBidNr = rand.Intn(100)
 	go client(randomBidNr)
 
+	select {}
+
 }
 
 func client(myBid int) {
@@ -28,12 +30,13 @@ func client(myBid int) {
 		randomNodeNr := rand.Intn(3)
 		client := connectToNode(randomNodeNr)
 
-		auctionResult, error := client.Result(context.Background(), &proto.Empty{})
+		// see auction status
+		auctionStatus, error := client.AuctionStatus(context.Background(), &proto.Empty{})
 		if error != nil {
 
 		}
 
-		if auctionResult.AuctionStatus {
+		if auctionStatus.InProgress {
 			// sends own bid, and recives auctions highest bid:
 			highestbid, err := client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
 				Bid: int64(myBid),
@@ -52,7 +55,7 @@ func client(myBid int) {
 				myBid = myBid + randomAddedCash
 			}
 		} else {
-			fmt.Println(auctionResult.HighestBid)
+			fmt.Println(auctionStatus.HighestBid)
 			break
 		}
 

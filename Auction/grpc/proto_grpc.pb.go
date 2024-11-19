@@ -21,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Communcation_Request_FullMethodName       = "/Communcation/Request"
 	Communcation_ClientRequest_FullMethodName = "/Communcation/ClientRequest"
-	Communcation_Result_FullMethodName        = "/Communcation/Result"
+	Communcation_AuctionStatus_FullMethodName = "/Communcation/AuctionStatus"
 )
 
 // CommuncationClient is the client API for Communcation service.
@@ -30,7 +30,7 @@ const (
 type CommuncationClient interface {
 	Request(ctx context.Context, in *RequestAccess, opts ...grpc.CallOption) (*AcceptNodeRequest, error)
 	ClientRequest(ctx context.Context, in *ClientToNodeBid, opts ...grpc.CallOption) (*AcceptClientRequest, error)
-	Result(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AuctionResult, error)
+	AuctionStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AuctionProgress, error)
 }
 
 type communcationClient struct {
@@ -61,10 +61,10 @@ func (c *communcationClient) ClientRequest(ctx context.Context, in *ClientToNode
 	return out, nil
 }
 
-func (c *communcationClient) Result(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AuctionResult, error) {
+func (c *communcationClient) AuctionStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AuctionProgress, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuctionResult)
-	err := c.cc.Invoke(ctx, Communcation_Result_FullMethodName, in, out, cOpts...)
+	out := new(AuctionProgress)
+	err := c.cc.Invoke(ctx, Communcation_AuctionStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (c *communcationClient) Result(ctx context.Context, in *Empty, opts ...grpc
 type CommuncationServer interface {
 	Request(context.Context, *RequestAccess) (*AcceptNodeRequest, error)
 	ClientRequest(context.Context, *ClientToNodeBid) (*AcceptClientRequest, error)
-	Result(context.Context, *Empty) (*AuctionResult, error)
+	AuctionStatus(context.Context, *Empty) (*AuctionProgress, error)
 	mustEmbedUnimplementedCommuncationServer()
 }
 
@@ -94,8 +94,8 @@ func (UnimplementedCommuncationServer) Request(context.Context, *RequestAccess) 
 func (UnimplementedCommuncationServer) ClientRequest(context.Context, *ClientToNodeBid) (*AcceptClientRequest, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClientRequest not implemented")
 }
-func (UnimplementedCommuncationServer) Result(context.Context, *Empty) (*AuctionResult, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Result not implemented")
+func (UnimplementedCommuncationServer) AuctionStatus(context.Context, *Empty) (*AuctionProgress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuctionStatus not implemented")
 }
 func (UnimplementedCommuncationServer) mustEmbedUnimplementedCommuncationServer() {}
 func (UnimplementedCommuncationServer) testEmbeddedByValue()                      {}
@@ -154,20 +154,20 @@ func _Communcation_ClientRequest_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Communcation_Result_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Communcation_AuctionStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CommuncationServer).Result(ctx, in)
+		return srv.(CommuncationServer).AuctionStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Communcation_Result_FullMethodName,
+		FullMethod: Communcation_AuctionStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CommuncationServer).Result(ctx, req.(*Empty))
+		return srv.(CommuncationServer).AuctionStatus(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -188,8 +188,8 @@ var Communcation_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Communcation_ClientRequest_Handler,
 		},
 		{
-			MethodName: "Result",
-			Handler:    _Communcation_Result_Handler,
+			MethodName: "AuctionStatus",
+			Handler:    _Communcation_AuctionStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
