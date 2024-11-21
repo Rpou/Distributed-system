@@ -29,7 +29,7 @@ func client(myBid int) {
 	for {
 		//connects to random client:
 		randomNodeNr := rand.Intn(3)
-		client := connectToNode(randomNodeNr)
+		client, nodeNumber := connectToNode(randomNodeNr)
 
 		// see auction status
 		auctionStatus, errorr := client.AuctionStatus(context.Background(), &proto.Empty{})
@@ -52,10 +52,10 @@ func client(myBid int) {
 
 			if highestbid.AuctionBid == int64(myBid) && highestbid.Giveacces {
 
-				fmt.Println("I currently have the highest bid at:", myBid)
+				fmt.Println("I currently have the highest bid at:", myBid, "i connected to node:", nodeNumber)
 
 			} else {
-				fmt.Println("I got rejected with:", myBid)
+				fmt.Println("I got rejected with:", myBid, "i connected to node:", nodeNumber)
 				randomAddedCash := rand.Intn(100) + 1
 				myBid = myBid + randomAddedCash
 			}
@@ -70,7 +70,7 @@ func client(myBid int) {
 	}
 }
 
-func connectToNode(nodeNumber int) proto.CommuncationClient {
+func connectToNode(nodeNumber int) (proto.CommuncationClient, int) {
 
 	Node1FullAdd := "localhost:5051"
 	Node2FullAdd := "localhost:5052"
@@ -99,9 +99,9 @@ func connectToNode(nodeNumber int) proto.CommuncationClient {
 		}
 		//if no errors, return node. If there is error it tries again
 		if err == nil {
-			fmt.Printf("Connected to node %d\n", nodeNumber)
+			fmt.Printf("Connected to node %d\n", nodeNumber+1)
 			if conn != nil {
-				return node
+				return node, nodeNumber + 1
 			}
 		}
 
