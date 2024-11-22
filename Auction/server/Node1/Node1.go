@@ -89,7 +89,7 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 }
 
 func main() {
-	server1 := &CommuncationServer{id: 1, otherServer1: "localhost:5052", otherServer2: "localhost:5053", timestamp: 1, timeLeftOfAuction: 400}
+	server1 := &CommuncationServer{id: 1, otherServer1: "localhost:5052", otherServer2: "localhost:5053", timestamp: 1, timeLeftOfAuction: 1000}
 
 	Node1Add := ":5051"
 
