@@ -58,6 +58,8 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 		accept2 := getPeerConnection(conn2, int64(s.timestamp))
 
 		if accept1.Giveacces && accept2.Giveacces {
+			auctionTime := min(accept1.TimeLeftOfAuction, accept2.TimeLeftOfAuction, s.timeLeftOfAuction)
+			s.timeLeftOfAuction = auctionTime
 
 			highestBid := max(s.currentHighestBid, accept1.MyBid, accept2.MyBid)
 			s.currentHighestBid = highestBid
@@ -123,9 +125,24 @@ func (s *CommuncationServer) start_server(NodeAddress string) {
 func (s *CommuncationServer) auction() {
 	for {
 		time.Sleep(time.Millisecond * 100)
-		//timeLeftOfAuction--
+		s.timeLeftOfAuction--
 		if s.timeLeftOfAuction < 0 {
 			fmt.Println("Auction should be over")
+
+			conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn2, err := grpc.NewClient(s.otherServer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			defer conn.Close()
+			defer conn2.Close()
+			accept1 := getPeerConnection(conn, int64(s.timestamp))
+			accept2 := getPeerConnection(conn2, int64(s.timestamp))
+
+			if err != nil {
+				log.Fatalf("Connection failed")
+			}
+
+			highestBid := max(s.currentHighestBid, accept1.MyBid, accept2.MyBid)
+			s.currentHighestBid = highestBid
+			
 			fmt.Println("Highest bid was", s.currentHighestBid)
 			break
 		}
