@@ -19,17 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChittychatDB_GetPosts_FullMethodName    = "/ChittychatDB/GetPosts"
-	ChittychatDB_PublishPost_FullMethodName = "/ChittychatDB/PublishPost"
-	ChittychatDB_Connect_FullMethodName     = "/ChittychatDB/Connect"
-	ChittychatDB_Disconnect_FullMethodName  = "/ChittychatDB/Disconnect"
+	ChittychatDB_GetConnectionLog_FullMethodName = "/ChittychatDB/GetConnectionLog"
+	ChittychatDB_PublishPost_FullMethodName      = "/ChittychatDB/PublishPost"
+	ChittychatDB_Connect_FullMethodName          = "/ChittychatDB/Connect"
+	ChittychatDB_Disconnect_FullMethodName       = "/ChittychatDB/Disconnect"
 )
 
 // ChittychatDBClient is the client API for ChittychatDB service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChittychatDBClient interface {
-	GetPosts(ctx context.Context, in *ClientLT, opts ...grpc.CallOption) (*Posts, error)
+	GetConnectionLog(ctx context.Context, in *ClientLT, opts ...grpc.CallOption) (*ConnectionsLog, error)
 	PublishPost(ctx context.Context, in *Post, opts ...grpc.CallOption) (*Posted, error)
 	Connect(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (*Empty, error)
 	Disconnect(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (*Empty, error)
@@ -43,10 +43,10 @@ func NewChittychatDBClient(cc grpc.ClientConnInterface) ChittychatDBClient {
 	return &chittychatDBClient{cc}
 }
 
-func (c *chittychatDBClient) GetPosts(ctx context.Context, in *ClientLT, opts ...grpc.CallOption) (*Posts, error) {
+func (c *chittychatDBClient) GetConnectionLog(ctx context.Context, in *ClientLT, opts ...grpc.CallOption) (*ConnectionsLog, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Posts)
-	err := c.cc.Invoke(ctx, ChittychatDB_GetPosts_FullMethodName, in, out, cOpts...)
+	out := new(ConnectionsLog)
+	err := c.cc.Invoke(ctx, ChittychatDB_GetConnectionLog_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (c *chittychatDBClient) Disconnect(ctx context.Context, in *ClientInfo, opt
 // All implementations must embed UnimplementedChittychatDBServer
 // for forward compatibility.
 type ChittychatDBServer interface {
-	GetPosts(context.Context, *ClientLT) (*Posts, error)
+	GetConnectionLog(context.Context, *ClientLT) (*ConnectionsLog, error)
 	PublishPost(context.Context, *Post) (*Posted, error)
 	Connect(context.Context, *ClientInfo) (*Empty, error)
 	Disconnect(context.Context, *ClientInfo) (*Empty, error)
@@ -101,8 +101,8 @@ type ChittychatDBServer interface {
 // pointer dereference when methods are called.
 type UnimplementedChittychatDBServer struct{}
 
-func (UnimplementedChittychatDBServer) GetPosts(context.Context, *ClientLT) (*Posts, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPosts not implemented")
+func (UnimplementedChittychatDBServer) GetConnectionLog(context.Context, *ClientLT) (*ConnectionsLog, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConnectionLog not implemented")
 }
 func (UnimplementedChittychatDBServer) PublishPost(context.Context, *Post) (*Posted, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PublishPost not implemented")
@@ -134,20 +134,20 @@ func RegisterChittychatDBServer(s grpc.ServiceRegistrar, srv ChittychatDBServer)
 	s.RegisterService(&ChittychatDB_ServiceDesc, srv)
 }
 
-func _ChittychatDB_GetPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ChittychatDB_GetConnectionLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ClientLT)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChittychatDBServer).GetPosts(ctx, in)
+		return srv.(ChittychatDBServer).GetConnectionLog(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ChittychatDB_GetPosts_FullMethodName,
+		FullMethod: ChittychatDB_GetConnectionLog_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChittychatDBServer).GetPosts(ctx, req.(*ClientLT))
+		return srv.(ChittychatDBServer).GetConnectionLog(ctx, req.(*ClientLT))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -214,8 +214,8 @@ var ChittychatDB_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ChittychatDBServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetPosts",
-			Handler:    _ChittychatDB_GetPosts_Handler,
+			MethodName: "GetConnectionLog",
+			Handler:    _ChittychatDB_GetConnectionLog_Handler,
 		},
 		{
 			MethodName: "PublishPost",
