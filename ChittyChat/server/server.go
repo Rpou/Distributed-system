@@ -21,10 +21,10 @@ type ChittychatDBServer struct {
 
 }
 
-func (s *ChittychatDBServer) GetPosts(ctx context.Context, in *proto.ClientLT) (*proto.Posts, error) {
+func (s *ChittychatDBServer) GetConnectionLog(ctx context.Context, in *proto.ClientInfo) (*proto.ConnectionsLog, error) {
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 
-	return &proto.Posts{Posts: s.posts, LamportTime: s.serverLamportTime}, nil
+	return &proto.ConnectionsLog{Logs: s.connectionLog, LamportTime: s.serverLamportTime}, nil
 }
 
 func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientInfo) (*proto.Empty, error) {

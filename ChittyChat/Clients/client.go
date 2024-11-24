@@ -80,16 +80,7 @@ func client(clientNumber int, wg *sync.WaitGroup, chats []string) {
 		}
 		LamportTime = int(serverReturn.LamportTime) //lamport time updates from what it recieved
 
-		// retrives all the posts from the server
-		posts, err := client.GetPosts(context.Background(), &proto.ClientLT{LamportTime: int64(LamportTime)})
-		if err != nil {
-			log.Fatalf("Client ", clientNumber, "Could not get posts")
-		}
-
-		println("Messages recieved by client:", clientNumber)
-		for _, post := range posts.Posts {
-			println(" - " + post)
-		}
+		
 
 		//20% chance it disconnects everytime it has made a post.
 		randomNumber := rand.Intn(5) + 1

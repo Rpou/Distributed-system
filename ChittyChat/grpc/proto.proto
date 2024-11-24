@@ -9,7 +9,7 @@ message ConnectionsLog {
 message Empty {}
 
 service ChittychatDB {
-    rpc GetConnectionLog (ClientLT) returns (ConnectionsLog) {};
+    rpc GetConnectionLog (ClientInfo) returns (ConnectionsLog) {};
     rpc PublishPost (Post) returns (Posted) {};
 
     rpc Connect (ClientInfo) returns (Empty) {};
@@ -31,6 +31,3 @@ message Posted {
     int64 lamport_time = 2;
 }
 
-message ClientLT {
-    int64 lamport_time = 1;
-}

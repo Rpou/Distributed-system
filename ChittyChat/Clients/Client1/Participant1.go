@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	connectionLog 	  []string
+	connectionLogLength int
 )
 
 func main() {
@@ -27,7 +27,7 @@ func client(clientNumber int) {
 	reader := bufio.NewReader(os.Stdin)
 	LamportTime := 1
 	isConnected := false
-
+	connectionLogLength  = 0;
 	conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
@@ -40,6 +40,7 @@ func client(clientNumber int) {
 
 		if !isConnected {
 			isConnected = tryToConnectToServer(client, clientNumber, LamportTime, reader)
+			connectionLogLength++
 		}
 
 		input, err := reader.ReadString('\n')
@@ -47,11 +48,20 @@ func client(clientNumber int) {
 			fmt.Println("i got an error")
 		}
 
+		serverConnectionLog, err := client.GetConnectionLog(context.Background(),&proto.ClientLT{LamportTime: int64(LamportTime)})
+
+		
+
+		if len(serverConnectionLog.Logs) > connectionLogLength {
+			fmt.Println("")
+		}
+
 		input = strings.TrimSpace(input)
 		length := len(input)
 
 		if input == "Disconnect" {
 			client.Disconnect(context.Background(), &proto.ClientInfo{Cn: int64(clientNumber), LamportTime: int64(LamportTime)})
+			connectionLogLength++
 			isConnected = false
 		} else if length > 128 {
 			fmt.Println("Too long message!")
