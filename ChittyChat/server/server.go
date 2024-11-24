@@ -15,23 +15,20 @@ import (
 type ChittychatDBServer struct {
 	proto.UnimplementedChittychatDBServer
 	posts             []string
-	connectionLog 	  []string
 	serverLamportTime int64
 	mu                sync.Mutex
-
 }
 
 func (s *ChittychatDBServer) GetConnectionLog(ctx context.Context, in *proto.ClientInfo) (*proto.ConnectionsLog, error) {
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 
-	return &proto.ConnectionsLog{Logs: s.connectionLog, LamportTime: s.serverLamportTime}, nil
+	return &proto.ConnectionsLog{Logs: s.posts, LamportTime: s.serverLamportTime}, nil
 }
 
 func (s *ChittychatDBServer) Connect(ctx context.Context, in *proto.ClientInfo) (*proto.Empty, error) {
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 	messageWithLamportTime := " Lamport time: " + strconv.FormatInt(s.serverLamportTime, 10)
 	s.posts = append(s.posts, fmt.Sprintf("The following client connected: %d"+messageWithLamportTime, in.Cn))
-	s.connectionLog = append(s.connectionLog, messageWithLamportTime)
 
 	fmt.Println("All logs so far: ")
 	for index, post := range s.posts {
@@ -45,7 +42,6 @@ func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientInf
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 	messageWithLamportTime := " Lamport time: " + strconv.FormatInt(s.serverLamportTime, 10)
 	s.posts = append(s.posts, fmt.Sprintf("The following client disconnected: %d"+messageWithLamportTime, in.Cn))
-	s.connectionLog = append(s.connectionLog, messageWithLamportTime)
 
 	fmt.Println("All logs so far: ")
 	for index, post := range s.posts {
@@ -56,7 +52,7 @@ func (s *ChittychatDBServer) Disconnect(ctx context.Context, in *proto.ClientInf
 }
 
 func (s *ChittychatDBServer) PublishPost(ctx context.Context, in *proto.Post) (*proto.Posted, error) {
-	//log.Printf("Received post: %s with Lamport time: %d", in.Post, in.LamportTime)
+
 	s.serverLamportTime = max(s.serverLamportTime, in.LamportTime) + 1
 
 	if len(in.Post) <= 128 {

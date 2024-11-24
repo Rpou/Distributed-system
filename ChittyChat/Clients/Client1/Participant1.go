@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -15,45 +16,50 @@ import (
 
 var (
 	connectionLogLength int
+	LamportTime         int
+	clientNumber        int
+	stopChan            chan struct{}
 )
 
 func main() {
-
-	client(1)
+	clientNumber = 1
+	stopChan = make(chan struct{}) // Initialize once
+	client()
 	select {}
 }
 
-func client(clientNumber int) {
+func client() {
 	reader := bufio.NewReader(os.Stdin)
-	LamportTime := 1
+	LamportTime = 1
 	isConnected := false
-	connectionLogLength  = 0;
-	conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	connectionLogLength = 0
 
+	conn, err := grpc.NewClient("localhost:6969", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("Client", clientNumber, "could not connect")
+		log.Fatalf("Client %d could not connect: %v", clientNumber, err)
 	}
 	defer conn.Close()
 
 	client := proto.NewChittychatDBClient(conn)
-	for {
 
+	// Start listening to updates
+	go listenToUpdates(client, stopChan)
+
+	for {
 		if !isConnected {
+			// Signal the goroutine to stop
+			stopChan <- struct{}{}
+
 			isConnected = tryToConnectToServer(client, clientNumber, LamportTime, reader)
-			connectionLogLength++
+
+			// Restart goroutine after connecting
+			go listenToUpdates(client, stopChan)
 		}
 
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("i got an error")
-		}
-
-		serverConnectionLog, err := client.GetConnectionLog(context.Background(),&proto.ClientLT{LamportTime: int64(LamportTime)})
-
-		
-
-		if len(serverConnectionLog.Logs) > connectionLogLength {
-			fmt.Println("")
+			fmt.Println("Error reading input:", err)
+			continue
 		}
 
 		input = strings.TrimSpace(input)
@@ -61,34 +67,28 @@ func client(clientNumber int) {
 
 		if input == "Disconnect" {
 			client.Disconnect(context.Background(), &proto.ClientInfo{Cn: int64(clientNumber), LamportTime: int64(LamportTime)})
-			connectionLogLength++
 			isConnected = false
 		} else if length > 128 {
-			fmt.Println("Too long message!")
+			fmt.Println("Message too long!")
 		} else {
-
-			post := &proto.Post{ // Making a Post
-				Post:        fmt.Sprintf(input),
+			post := &proto.Post{
+				Post:        input,
 				LamportTime: int64(LamportTime),
 			}
 
-			// Sends the post to the server
 			serverReturn, err := client.PublishPost(context.Background(), post)
-			if err != nil || serverReturn.Posted == false {
-				log.Fatalf("Client ", clientNumber, "Could not post")
+			if err != nil || !serverReturn.Posted {
+				log.Fatalf("Client %d could not post: %v", clientNumber, err)
 			}
-			LamportTime = int(serverReturn.LamportTime) //lamport time updates from what it recieved
-
+			LamportTime = int(serverReturn.LamportTime)
 		}
 	}
 }
 
 func tryToConnectToServer(client proto.ChittychatDBClient, clientNumber int, LamportTime int, reader *bufio.Reader) bool {
-
 	fmt.Println("Waiting for input... Type 'Join' to proceed.")
 	for {
 		input, err := reader.ReadString('\n')
-
 		if err != nil {
 			fmt.Println("Error reading input:", err)
 			continue
@@ -101,6 +101,30 @@ func tryToConnectToServer(client proto.ChittychatDBClient, clientNumber int, Lam
 			return true
 		} else {
 			fmt.Println("Invalid input. Type 'Join' to proceed.")
+		}
+	}
+}
+
+func listenToUpdates(client proto.ChittychatDBClient, stopChan chan struct{}) {
+	for {
+		select {
+		case <-stopChan:
+			return
+		default:
+			time.Sleep(time.Second)
+			serverConnectionLog, err := client.GetConnectionLog(context.Background(), &proto.ClientInfo{Cn: int64(clientNumber), LamportTime: int64(LamportTime)})
+
+			if err != nil {
+				fmt.Println("Error fetching connection log:", err)
+				continue
+			}
+
+			if len(serverConnectionLog.Logs) > connectionLogLength {
+				for i := len(serverConnectionLog.Logs) - connectionLogLength; i > 0; i-- {
+					fmt.Println(serverConnectionLog.Logs[len(serverConnectionLog.Logs)-i])
+				}
+				connectionLogLength = len(serverConnectionLog.Logs)
+			}
 		}
 	}
 }
