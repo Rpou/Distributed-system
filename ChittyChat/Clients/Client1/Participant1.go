@@ -66,6 +66,7 @@ func client() {
 		length := len(input)
 
 		if input == "Disconnect" {
+			connectionLogLength++ // Ensures that the disconnect message does not appear for the person who disconnect
 			client.Disconnect(context.Background(), &proto.ClientInfo{Cn: int64(clientNumber), LamportTime: int64(LamportTime)})
 			isConnected = false
 		} else if length > 128 {
