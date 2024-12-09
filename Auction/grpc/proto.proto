@@ -5,20 +5,18 @@ message RequestAccess {
     int64 time = 1;
 }
 
-message ClientToNodeBid {
-    int64 bid = 1;
-}
-
 message AcceptNodeRequest {
     bool giveacces = 1;
     int64 myBid = 2;
     int64 timeLeftOfAuction = 3;
+}
 
+message ClientToNodeBid {
+    int64 bid = 1;
 }
 
 message AcceptClientRequest {
-    int64 auctionBid = 1;
-    bool giveacces = 2;
+    string giveacces = 1;
 }
 
 message AuctionProgress {
@@ -31,6 +29,6 @@ message Empty {}
 
 service Communcation {
     rpc Request (RequestAccess) returns (AcceptNodeRequest) {};
-    rpc ClientRequest (ClientToNodeBid) returns (AcceptClientRequest);
-    rpc AuctionStatus (Empty) returns (AuctionProgress);
+    rpc Bid (ClientToNodeBid) returns (AcceptClientRequest);
+    rpc Result (Empty) returns (AuctionProgress);
 }

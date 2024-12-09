@@ -2,8 +2,11 @@ package main
 
 import (
 	proto "ITUServer/grpc"
+	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"math/rand"
@@ -14,19 +17,24 @@ import (
 
 func main() {
 
-	randomBidNr := rand.Intn(100)
-	go client(randomBidNr)
-
-	randomBidNr = rand.Intn(100)
-	go client(randomBidNr)
+	client()
 
 	select {}
 
 }
 
-func client(myBid int) {
-
+func client() {
+	reader := bufio.NewReader(os.Stdin)
 	for {
+
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			continue
+		}
+
+		input = strings.TrimSpace(input)
+
 		//connects to random client:
 		randomNodeNr := rand.Intn(3)
 		client, nodeNumber := connectToNode(randomNodeNr)
