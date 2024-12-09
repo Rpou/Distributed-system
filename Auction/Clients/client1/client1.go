@@ -5,11 +5,11 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
-
-	"math/rand"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -18,13 +18,15 @@ import (
 func main() {
 
 	client()
-
 	select {}
 
 }
 
 func client() {
+	MyBid := 0
 	reader := bufio.NewReader(os.Stdin)
+	highbid := -1
+	fmt.Println("Write a bid to participate in the auction. Write '{bid amount}' to bid or 'Status' to see auction status.")
 	for {
 
 		input, err := reader.ReadString('\n')
@@ -39,41 +41,58 @@ func client() {
 		randomNodeNr := rand.Intn(3)
 		client, nodeNumber := connectToNode(randomNodeNr)
 
-		// see auction status
-		auctionStatus, errorr := client.AuctionStatus(context.Background(), &proto.Empty{})
-		if errorr != nil {
-			fmt.Printf("Error fetching auction status from node %d: %v\n", randomNodeNr, errorr)
-			time.Sleep(time.Millisecond * 100) // Retry with a different node
-			continue
-		}
+		fmt.Println("You connected to Node:", nodeNumber)
+		if _, err := strconv.Atoi(input); err == nil {
+			bid, err := strconv.Atoi(input)
 
-		if auctionStatus.InProgress {
-			// sends own bid, and recives auctions highest bid:
-			highestbid, err := client.ClientRequest(context.Background(), &proto.ClientToNodeBid{
-				Bid: int64(myBid),
-			})
 			if err != nil {
 				fmt.Printf("Error sending bid to node %d: %v\n", randomNodeNr, err)
-				time.Sleep(time.Millisecond * 100) // Retry with a different node
 				continue
 			}
 
-			if highestbid.AuctionBid == int64(myBid) && highestbid.Giveacces {
+			if MyBid > bid {
+				fmt.Println("this bid is invalid, as it is lower than your current bid, or was lower than 0")
+			} else {
+				MyBid = bid
+				Output, err := client.Bid(context.Background(), &proto.ClientToNodeBid{
+					Bid: int64(bid),
+				})
 
-				fmt.Println("I currently have the highest bid at:", myBid, "i connected to node:", nodeNumber)
+				if err != nil {
+					fmt.Printf("Error sending bid to node %d: %v\n", randomNodeNr, err)
+					continue
+				}
+
+				fmt.Println(Output)
+			}
+
+		} else if input == "Status" {
+
+			auctionStatus, errorr := client.Result(context.Background(), &proto.Empty{})
+			if errorr != nil {
+				fmt.Printf("Error fetching auction status from node %d: %v\n", randomNodeNr, errorr)
+				time.Sleep(time.Millisecond * 100) // Retry with a different node
+				continue
+			}
+			highbid = int(auctionStatus.HighestBid)
+			if auctionStatus.InProgress {
+				if MyBid == int(highbid) {
+					fmt.Println("You have the highest bid!")
+				} else {
+					fmt.Println("The Auction is still ongoing! The highest bid is:", highbid)
+				}
 
 			} else {
-				fmt.Println("I got rejected with:", myBid, "i connected to node:", nodeNumber)
-				randomAddedCash := rand.Intn(100) + 1
-				myBid = myBid + randomAddedCash
+				if MyBid == int(highbid) {
+					fmt.Println("The Auction is over! You had the highest bid! You won!")
+				} else {
+					fmt.Println("The Auction is over! The highest bid was:", highbid)
+				}
 			}
 
 		} else {
-			fmt.Println(auctionStatus.HighestBid)
-			break
+			fmt.Println("I dont understand the input. Please use the instruction at the top")
 		}
-
-		time.Sleep(time.Millisecond * 100)
 
 	}
 }
@@ -113,7 +132,7 @@ func connectToNode(nodeNumber int) (proto.CommuncationClient, int) {
 			}
 		}
 
-		fmt.Printf("Failed to connect to node %d: %v\n", nodeNumber, err)
+		fmt.Printf("Failed to connect to node %d: %v\n", nodeNumber)
 		nodeNumber = rand.Intn(3) // Retry with a different node
 	}
 }

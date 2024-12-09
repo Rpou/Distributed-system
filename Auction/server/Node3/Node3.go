@@ -27,7 +27,7 @@ type CommuncationServer struct {
 	timeLeftOfAuction int64
 }
 
-func (s *CommuncationServer) AuctionStatus(ctx context.Context, in *proto.Empty) (*proto.AuctionProgress, error) {
+func (s *CommuncationServer) Result(ctx context.Context, in *proto.Empty) (*proto.AuctionProgress, error) {
 	return &proto.AuctionProgress{InProgress: s.timeLeftOfAuction > 0, HighestBid: int64(s.currentHighestBid)}, nil
 }
 
@@ -38,7 +38,7 @@ func (s *CommuncationServer) Request(ctx context.Context, in *proto.RequestAcces
 	return &proto.AcceptNodeRequest{Giveacces: in.Time > int64(s.timestamp) || !s.wantAccess, MyBid: int64(s.currentHighestBid), TimeLeftOfAuction: int64(s.timeLeftOfAuction)}, nil
 }
 
-func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
+func (s *CommuncationServer) Bid(ctx context.Context, in *proto.ClientToNodeBid) (*proto.AcceptClientRequest, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	fmt.Println(s.id, "started asking for access")
@@ -69,20 +69,18 @@ func (s *CommuncationServer) ClientRequest(ctx context.Context, in *proto.Client
 				fmt.Println("I am node ", s.id, " Current new price: ", s.currentHighestBid, " timestamp: ", s.timestamp)
 				s.wantAccess = false
 				return &proto.AcceptClientRequest{
-					AuctionBid: s.currentHighestBid,
-					Giveacces:  true,
+					Giveacces: "success",
 				}, nil
 			}
 			fmt.Println(s.id, "finished asking for access")
 			s.wantAccess = false
 			return &proto.AcceptClientRequest{
-				AuctionBid: s.currentHighestBid,
-				Giveacces:  false,
+				Giveacces: "fail",
 			}, nil
 
 		} else {
 			fmt.Println("I am ", s.id, " I got no access granted ", s.timestamp)
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Millisecond)
 			s.timestamp += 5
 		}
 	}
@@ -126,8 +124,9 @@ func (s *CommuncationServer) auction() {
 	for {
 		time.Sleep(time.Millisecond * 100)
 		s.timeLeftOfAuction--
+
 		if s.timeLeftOfAuction < 0 {
-			fmt.Println("Auction should be over")
+			fmt.Println("Auction is over")
 
 			conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			conn2, err := grpc.NewClient(s.otherServer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -146,6 +145,22 @@ func (s *CommuncationServer) auction() {
 			fmt.Println("Highest bid was", s.currentHighestBid)
 			break
 		}
+
+		// Constantly update highest bid
+		conn, err := grpc.NewClient(s.otherServer1, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn2, err := grpc.NewClient(s.otherServer2, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		defer conn.Close()
+		defer conn2.Close()
+		accept1 := getPeerConnection(conn, int64(s.timestamp))
+		accept2 := getPeerConnection(conn2, int64(s.timestamp))
+
+		if err != nil {
+			log.Fatalf("Connection failed")
+		}
+
+		highestBid := max(s.currentHighestBid, accept1.MyBid, accept2.MyBid)
+		s.currentHighestBid = highestBid
+
 	}
 }
 
@@ -157,7 +172,7 @@ func getPeerConnection(conn *grpc.ClientConn, timestamp int64) *proto.AcceptNode
 	})
 
 	if err != nil {
-		fmt.Println("Request failed")
+
 		return &proto.AcceptNodeRequest{
 			Giveacces:         true,
 			MyBid:             0,
