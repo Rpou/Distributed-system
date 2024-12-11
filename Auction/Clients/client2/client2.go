@@ -22,7 +22,7 @@ func main() {
 }
 
 func client() {
-	MyBid := 0
+	MyBid := -1
 	reader := bufio.NewReader(os.Stdin)
 	highbid := -1
 	fmt.Println("Write a bid to participate in the auction. Write '{bid amount}' to bid or 'Status' to see auction status.")
@@ -50,8 +50,8 @@ func client() {
 				continue
 			}
 
-			if MyBid > bid {
-				fmt.Println("this bid is invalid, as it is lower than your current bid, or was lower than 0")
+			if MyBid > bid || bid == 0 {
+				fmt.Println("this bid is invalid, as it is lower than your current bid, or was 0")
 			} else {
 				MyBid = bid
 				Output, err := client.Bid(context.Background(), &proto.ClientToNodeBid{
