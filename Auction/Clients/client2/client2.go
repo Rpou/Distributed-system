@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -42,6 +41,7 @@ func client() {
 		client, nodeNumber := connectToNode(randomNodeNr)
 
 		fmt.Println("You connected to Node:", nodeNumber)
+
 		if _, err := strconv.Atoi(input); err == nil {
 			bid, err := strconv.Atoi(input)
 
@@ -59,8 +59,26 @@ func client() {
 				})
 
 				if err != nil {
-					fmt.Printf("Error sending bid to node %d: %v\n", randomNodeNr, err)
-					continue
+					fmt.Printf("Error sending bid to node %d: %v\n", nodeNumber, err)
+
+					for {
+						randomNodeNr := rand.Intn(3)
+						clientNew, nodeNumberNew := connectToNode(randomNodeNr)
+
+						if nodeNumber != nodeNumberNew {
+							client = clientNew
+							nodeNumber = nodeNumberNew
+							OutputNew, err := client.Bid(context.Background(), &proto.ClientToNodeBid{
+								Bid: int64(bid),
+							})
+
+							if err != nil {
+								fmt.Printf("Error sending bid to node %d: %v\n", nodeNumber, err)
+							}
+							Output = OutputNew
+							break
+						}
+					}
 				}
 
 				fmt.Println(Output)
@@ -70,9 +88,24 @@ func client() {
 
 			auctionStatus, errorr := client.Result(context.Background(), &proto.Empty{})
 			if errorr != nil {
-				fmt.Printf("Error fetching auction status from node %d: %v\n", randomNodeNr, errorr)
-				time.Sleep(time.Millisecond * 100) // Retry with a different node
-				continue
+				fmt.Printf("Error fetching auction status from node %d: %v\n", nodeNumber, errorr)
+
+				for {
+					randomNodeNr := rand.Intn(3)
+					clientNew, nodeNumberNew := connectToNode(randomNodeNr)
+
+					if nodeNumber != nodeNumberNew {
+						nodeNumber = nodeNumberNew
+						client = clientNew
+						auctionStatusNew, errorr := client.Result(context.Background(), &proto.Empty{})
+						if errorr != nil {
+							fmt.Printf("Error fetching auction status from node %d: %v\n", nodeNumberNew, errorr)
+						}
+						auctionStatus = auctionStatusNew
+						break
+					}
+				}
+
 			}
 			highbid = int(auctionStatus.HighestBid)
 			if auctionStatus.InProgress {
