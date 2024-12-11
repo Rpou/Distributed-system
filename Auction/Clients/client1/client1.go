@@ -29,6 +29,12 @@ func client() {
 	fmt.Println("Write a bid to participate in the auction. Write '{bid amount}' to bid or 'Status' to see auction status.")
 	for {
 
+		//connects to random client:
+		randomNodeNr := rand.Intn(3)
+		client, nodeNumber := connectToNode(randomNodeNr)
+
+		fmt.Println("You connected to Node:", nodeNumber)
+
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println("Error reading input:", err)
@@ -36,12 +42,7 @@ func client() {
 		}
 
 		input = strings.TrimSpace(input)
-
-		//connects to random client:
-		randomNodeNr := rand.Intn(3)
-		client, nodeNumber := connectToNode(randomNodeNr)
-
-		fmt.Println("You connected to Node:", nodeNumber)
+		
 		if _, err := strconv.Atoi(input); err == nil {
 			bid, err := strconv.Atoi(input)
 
